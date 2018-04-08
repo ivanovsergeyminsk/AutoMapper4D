@@ -98,7 +98,7 @@
 begin
   FPerson := TPerson.Create('Иванов', 'Сергей', 'Николаевич', 26);
 
-  FUserDTO    := Mapper.Map<TPerson, TUserDTO>(FPerson);
   FPersonDTO  := Mapper.Map<TPerson, TPersonDTO>(FPerson);
+  FUserDTO    := Mapper.Map<TUserDTO>(FPerson); // Без указания типа исходного объектра
 end;
 ```
