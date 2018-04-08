@@ -16,7 +16,7 @@
 > ```
 Применение:
 > ```pascal 
-> FUserDTO := Mapper.Map<TPersonDTO>(FPerson);
+> FPersonDTO := Mapper.Map<TPersonDTO>(FPerson);
 > ``` 
 ***
 Классы объектов с которыми будем взаимодействовать:
