@@ -32,7 +32,8 @@ type
     procedure TearDown; override;
   published
     procedure TestConfigure;
-    procedure TestMap;
+    procedure TestMap_params_2;
+    procedure TestMap_params_1;
   end;
 
 implementation
@@ -53,7 +54,36 @@ begin
   _configure;
 end;
 
-procedure TestTMapper.TestMap;
+procedure TestTMapper.TestMap_params_1;
+var
+  FPerson:    TPerson;
+  FUserDTO:   TUserDTO;
+  FPersonDTO: TPersonDTO;
+
+  FFirstName, FLastName, FMiddleName, FFullName: string;
+  FAge: integer;
+begin
+  _configure;
+  FLastName   := 'Иванов';
+  FFirstName  := 'Сергей';
+  FMiddleName := 'Николаеивч';
+  FAge        :=  26;
+  FFullName := FLastName+' '+FFirstName+' '+FMiddleName;
+
+  FPerson := TPerson.Create(FLastName, FFirstName, FMiddleName, FAge);
+
+  FUserDTO    := Mapper.Map<TUserDTO>(FPerson);
+  FPersonDTO  := Mapper.Map<TPersonDTO>(FPerson);
+
+  CheckEquals(FFullName, FUserDTO.FullName);
+  CheckEquals(FAge, FUserDTO.Age);
+  CheckEquals(FLastName, FPersonDTO.LastName);
+  CheckEquals(FFirstName, FPersonDTO.FirstName);
+  CheckEquals(FMiddleName, FPerson.MiddleName);
+  CheckEquals(FAge, FPerson.Age);
+end;
+
+procedure TestTMapper.TestMap_params_2;
 var
   FPerson:    TPerson;
   FUserDTO:   TUserDTO;

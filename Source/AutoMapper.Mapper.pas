@@ -29,7 +29,15 @@ type
     /// <typeparam name="TDestination">Destination type to create</typeparam>
     /// <param name="source">Source object to map from</param>
     /// <returns>Mapped destination object</returns>
-    function Map<TSource: Class; TDestination: Class>(const source: TSource): TDestination;
+    function Map<TSource: Class; TDestination: Class>(const source: TSource): TDestination; overload;
+    /// <summary>
+    /// Execute a mapping from the source object to a new destination object.
+    /// The source type is inferred from the source object.
+    /// </summary>
+    /// <typeparam name="TDestination">Destination type to create</typeparam>
+    /// <param name="source">Source object to map from</param>
+    /// <returns>Mapped destination object</returns>
+    function Map<TDestination: Class>(const source: TObject): TDestination; overload;
 
     class function GetInstance: TMapper;
     class procedure Configure(const cfg: TActionConfigurationProvider);
@@ -40,6 +48,11 @@ type
     Mapper: TMapper;
 
 implementation
+
+function TMapper.Map<TDestination>(const source: TObject): TDestination;
+begin
+  Result := MapEngine.Map<TDestination>(source);
+end;
 
 function TMapper.Map<TSource, TDestination>(const source: TSource): TDestination;
 begin
