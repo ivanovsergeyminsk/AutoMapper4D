@@ -13,12 +13,13 @@ type
     FCfgMapper: TCfgMapper;
 
     function CreateInstance<TDestination: Class>: TDestination;
-    function GetExpression<TSource: Class; TDestionation: Class>(const AClassPair: TClassPair): TAction<TSource, TDestionation>;
+    function GetExpression<TSource, TDestination>(const AClassPair: TClassPair): TAction<TSource, TDestination>;
   public
     constructor Create(const ACfgMapper: TCfgMapper);
     destructor Destroy; override;
 
-    function Map<TSource: Class; TDestination: Class>(const source: TSource): TDestination;
+    function Map<TSource: Class; TDestination: Class>(const source: TSource): TDestination; overload;
+    function Map<TDestination: Class>(const source: TObject): TDestination; overload;
 
   end;
 
@@ -50,6 +51,8 @@ begin
   FDestObj := FDestValue.AsObject;
 
   Result := FDestObj as TDestination;
+
+  Ctx.Free;
 end;
 
 destructor TMapEngine.Destroy;
@@ -59,11 +62,11 @@ begin
   inherited;
 end;
 
-function TMapEngine.GetExpression<TSource, TDestionation>(const AClassPair: TClassPair): TAction<TSource, TDestionation>;
+function TMapEngine.GetExpression<TSource, TDestination>(const AClassPair: TClassPair): TAction<TSource, TDestination>;
 var
   FMapItem: TMapItem;
   FExpValue: TValue;
-  FExp: TAction<TSource, TDestionation>;
+  FExp: TAction<TSource, TDestination>;
 begin
   FMapItem    := FCfgMapper.GetMapItem(AClassPair);
   FExpValue   := FMapItem.Exp;
@@ -71,6 +74,28 @@ begin
   FExpValue.ExtractRawData(@FExp);
 
   Result := FExp;
+end;
+
+function TMapEngine.Map<TDestination>(const source: TObject): TDestination;
+var
+  FClassPair: TClassPair;
+  FDestination: TDestination;
+  FExp: TAction<TObject, TDestination>;
+
+  Ctx: TRttiContext;
+  FRttiType: TRttiType;
+  FRttiInstance: TRttiInstanceType;
+  FDestValue: TValue;
+  FDestObj: TObject;
+begin
+  FDestination := CreateInstance<TDestination>();
+  FClassPair := TClassPair.Create(source.ClassType, TDestination);
+
+  FExp := GetExpression<TObject, TDestination>(FClassPair);
+
+  FExp(source, FDestination);
+
+  Result := FDestination;
 end;
 
 function TMapEngine.Map<TSource, TDestination>(const source: TSource): TDestination;
