@@ -12,6 +12,7 @@ type
     destructor Destroy; override;
   public
     function CreateMap<TSource: Class; TDestination: Class>(const MappingExpression: TAction<TSource, TDestination>): TConfigurationProvider; overload;
+    function CreateMap<TSource: Class; TDestination: Class>(): TConfigurationProvider; overload;
 
     procedure Validate;
   end;
@@ -35,6 +36,12 @@ function TConfigurationProvider.CreateMap<TSource, TDestination>(
 begin
   FCfgMapper.CreateMap<TSource, TDestination>(MappingExpression);
   result := Self;
+end;
+
+function TConfigurationProvider.CreateMap<TSource, TDestination>: TConfigurationProvider;
+begin
+  FCfgMapper.CreateMap<TSource, TDestination>;
+  Result := Self;
 end;
 
 destructor TConfigurationProvider.Destroy;

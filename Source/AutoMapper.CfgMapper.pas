@@ -5,6 +5,7 @@ interface
 uses
   AutoMapper.MapItem,
   AutoMapper.ClassPair,
+  AutoMapper.MappingExpression,
   Spring,
   Spring.Collections
   ;
@@ -15,14 +16,15 @@ type
   private
     FMapItems: IDictionary<TClassPair, TMapItem>;
 
-    function ExpToValue<TSource: Class; TDestination: Class>(const AExp: TAction<TSource, TDestination>): TValue;
+    function ExpToValue<TSource: Class; TDestination: Class>(const AExp: TAction<TSource, TDestination>): TValue; overload;
   public
     constructor Create;
     destructor Destroy; override;
 
     function GetMapItem(const AClassPair: TClassPair): TMapItem;
 //    procedure CreateMap<TSource, TDestination>(); overload;
-    procedure CreateMap<TSource: Class; TDestination: Class>(const MappingExpression: TAction<TSource, TDestination>);
+    procedure CreateMap<TSource: Class; TDestination: Class>(const MappingExpression: TAction<TSource, TDestination>); overload;
+    procedure CreateMap<TSource: Class; TDestination: Class>; overload;
   end;
 
 implementation
@@ -47,6 +49,24 @@ begin
   FExp := ExpToValue<TSource, TDestination>(MappingExpression);
   FClassPair := TClassPair.Create(TSource, TDestination);
   FMapItem := TMapItem.Create(FClassPair, FExp);
+
+  FMapItems.Add(FClassPair, FMapItem);
+end;
+
+procedure TCfgMapper.CreateMap<TSource, TDestination>;
+Var
+  FMapItem: TMapItem;
+  FClassPair: TClassPair;
+  FExpValue: TValue;
+  FExp: TAction<TObject, TObject>;
+begin
+  FExp := TMapExpCollections.MapExpProperties;
+  TValue.Make(@FExp,
+               TypeInfo(TAction<TObject, TObject>),
+               FExpValue);
+
+  FClassPair := TClassPair.Create(TSource, TDestination);
+  FMapItem := TMapItem.Create(FClassPair, FExpValue);
 
   FMapItems.Add(FClassPair, FMapItem);
 end;

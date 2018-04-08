@@ -126,13 +126,7 @@ begin
                                                           FUserDTO.Age      := FPerson.Age;
                                                         end
                                                       )
-                       .CreateMap<TPerson, TPersonDTO>(procedure (const FPerson: TPerson; const FPersonDTO: TPersonDTO)
-                                                        begin
-                                                          FPersonDTO.LastName    := FPerson.LastName;
-                                                          FPersonDTO.FirstName   := FPerson.FirstName;
-                                                          FPersonDTO.MiddleName  := FPerson.MiddleName;
-                                                          FPersonDTO.Age         := FPerson.Age;
-                                                        end)
+                       .CreateMap<TPerson, TPersonDTO>();
                   end);
 end;
 
