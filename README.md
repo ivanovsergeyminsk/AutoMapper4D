@@ -4,8 +4,21 @@
 
 В коде используется дополнитеный фреймворк: [Spring4D](https://bitbucket.org/sglienke/spring4d).
 ***
+
 ## Пример использования:
 
+Настройка:
+> ```pascal 
+> Mapper.Configure(procedure (const cfg: TConfigurationProvider)
+>                   begin
+>                     cfg.CreateMap<TPerson, TPersonDTO>();
+>                   end); 
+> ```
+Применение:
+> ```pascal 
+> FUserDTO := Mapper.Map<TPersonDTO>(FPerson);
+> ``` 
+***
 Классы объектов с которыми будем взаимодействовать:
 ```pascal
   TPerson = class
@@ -65,6 +78,7 @@
  
  Mapper.Configure(procedure (const cfg: TConfigurationProvider)
                   begin
+                        //пользовательский маппинг.
                     cfg.CreateMap<TPerson, TUserDTO>(procedure (const FPerson: TPerson; const FUserDTO: TUserDTO)
                                                         begin
                                                           FUserDTO.FullName := FPerson.LastName    +' '+
@@ -74,7 +88,8 @@
                                                           FUserDTO.Age      := FPerson.Age;
                                                         end
                                                       )
-                       .CreateMap<TPerson, TPersonDTO>(); //маппинг по public и published полям и свойствам.
+                        //автоматический маппинг по public и published полям и свойствам.
+                       .CreateMap<TPerson, TPersonDTO>(); 
                   end); 
   ```
   
