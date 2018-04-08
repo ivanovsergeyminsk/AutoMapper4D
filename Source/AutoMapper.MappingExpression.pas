@@ -137,7 +137,7 @@ begin
       begin
         if (FDestRttiField.Visibility    in [mvPublic, mvPublished]) and
            (FSourceRttiField.Visibility  in [mvPublic, mvPublished]) and
-           (FDestRttiField.Name.ToLower = FSourceRttiField.Name.ToLower)
+           (FDestRttiField.Name.ToLower.Replace('_','') = FSourceRttiField.Name.ToLower.Replace('_', ''))
         then
           begin
             FSourceValue  := FSourceRttiType.GetField(FSourceRttiField.Name).GetValue(source);
@@ -150,7 +150,7 @@ begin
           for FSourceRttiProp in FSourceRttiType.GetProperties do
             if (FDestRttiField.Visibility    in [mvPublic, mvPublished]) and
                (FSourceRttiProp.Visibility   in [mvPublic, mvPublished]) and
-               (FDestRttiField.Name.ToLower = FSourceRttiProp.Name.ToLower)
+               (FDestRttiField.Name.ToLower.Replace('_','') = FSourceRttiProp.Name.ToLower.Replace('_',''))
             then
               begin
                 FSourceValue  := FSourceRttiType.GetProperty(FSourceRttiProp.Name).GetValue(source);
@@ -166,7 +166,7 @@ begin
         begin
           if (FDestRttiProp.Visibility    in [mvPublic, mvPublished]) and
              (FSourceRttiProp.Visibility  in [mvPublic, mvPublished]) and
-             (FDestRttiProp.Name.ToLower = FSourceRttiProp.Name.ToLower)
+             (FDestRttiProp.Name.ToLower.Replace('_','') = FSourceRttiProp.Name.ToLower.Replace('_',''))
           then
             begin
               FSourceValue  := FSourceRttiType.GetProperty(FSourceRttiProp.Name).GetValue(source);
@@ -179,7 +179,7 @@ begin
             for FSourceRttiField in FSourceRttiType.GetFields do
               if (FDestRttiField.Visibility    in [mvPublic, mvPublished]) and
                  (FSourceRttiField.Visibility   in [mvPublic, mvPublished]) and
-                 (FDestRttiField.Name.ToLower = FSourceRttiField.Name.ToLower)
+                 (FDestRttiField.Name.ToLower.Replace('_','') = FSourceRttiField.Name.ToLower.Replace('_',''))
               then
                 begin
                   FSourceValue  := FSourceRttiType.GetField(FSourceRttiField.Name).GetValue(source);
