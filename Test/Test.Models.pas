@@ -23,19 +23,17 @@ type
 
   TPersonDTO = class
   private
-    FAge: integer;
     FLastName: string;
     FMiddleName: Nullable<string>;
     FFirstName: string;
-    procedure SetAge(const Value: integer);
     procedure SetFirstName(const Value: string);
     procedure SetLastName(const Value: string);
     procedure SetMiddleName(const Value: Nullable<string>);
   public
-    property LastName: string read FLastName write SetLastName;
+    Age: integer;
+    LastName: string;
     property FirstName: string read FFirstName write SetFirstName;
     property MiddleName: Nullable<string> read FMiddleName write SetMiddleName;
-    property Age: integer read FAge write SetAge;
   end;
 
   TUserDTO = class
@@ -64,11 +62,6 @@ begin
 end;
 
 { TPersonDTO }
-
-procedure TPersonDTO.SetAge(const Value: integer);
-begin
-  FAge := Value;
-end;
 
 procedure TPersonDTO.SetFirstName(const Value: string);
 begin

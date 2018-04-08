@@ -60,7 +60,7 @@ Var
   FExpValue: TValue;
   FExp: TAction<TObject, TObject>;
 begin
-  FExp := TMapExpCollections.MapExpProperties;
+  FExp := TMapExpCollections.MapExpPropsFields;
   TValue.Make(@FExp,
                TypeInfo(TAction<TObject, TObject>),
                FExpValue);

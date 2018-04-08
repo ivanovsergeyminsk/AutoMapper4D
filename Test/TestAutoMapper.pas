@@ -106,10 +106,10 @@ begin
 
   CheckEquals(FFullName, FUserDTO.FullName);
   CheckEquals(FAge, FUserDTO.Age);
-  CheckEquals(FLastName, FPersonDTO.LastName);
-  CheckEquals(FFirstName, FPersonDTO.FirstName);
-  CheckEquals(FMiddleName, FPerson.MiddleName);
-  CheckEquals(FAge, FPerson.Age);
+  CheckEquals(FLastName,   FPersonDTO.LastName);
+  CheckEquals(FFirstName,  FPersonDTO.FirstName);
+  CheckEquals(FMiddleName, FPersonDTO.MiddleName);
+  CheckEquals(FAge, FPersonDTO.Age, 'В исходном объекте свойство Age: Nullabe<integer>, а в результатирующем Age: integer. Автоматический Cast стандартными средствами не возможен');
 end;
 
 procedure TestTMapper._Configure;
