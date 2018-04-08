@@ -74,7 +74,7 @@
                                                           FUserDTO.Age      := FPerson.Age;
                                                         end
                                                       )
-                       .CreateMap<TPerson, TPersonDTO>(); //маппинг по public и published свойствам.
+                       .CreateMap<TPerson, TPersonDTO>(); //маппинг по public и published полям и свойствам.
                   end); 
   ```
   
