@@ -14,6 +14,7 @@ interface
 uses
   TestFramework,
   Test.Models,
+  Test.ModelsDTO,
   AutoMapper.Mapper,
   AutoMapper.ConfigurationProvider,
   Spring,
@@ -25,138 +26,61 @@ type
 
   TestTMapper = class(TTestCase)
   strict private
-    FLastName   : string;
-    FFirstName  : string;
-    FMiddleName : string;
-    FAge        : integer;
-    FFullName   : string;
+    const
+      CS_LAST_NAME          = 'Иванов';
+      CS_FIRST_NAME         = 'Сергей';
+      CS_MIDDLE_NAME        = 'Николаеивч';
+      CS_AGE                =  26;
+      CS_STREET             = 'Гагарина';
+      CS_NUM_HOUSE          =  34;
+      CS_FULL_NAME          = CS_LAST_NAME+' '+CS_FIRST_NAME+' '+CS_MIDDLE_NAME+', возраст: 26';
+      CS_FULL_ADDRESS       = 'ул. '+CS_STREET+' д. 34';
+      CS_OVERRIDE_FULL_NAME = 'Петрович Петр Игнатьевич';
+      СS_OVERRIDE_ADDRESS   = 'ул. Некрасова';
+  strict private
+    FAddress    : TAddress;
+    FPerson     : TPerson;
+
     FMapper: TMapper;
     procedure _Configure;
+  private
+    procedure CreateAddressDTO(var FAddressDTO: TAddressDTO);
+    procedure CreatePersonDTO(FAddressDTO: TAddressDTO; var FPersonDTO: TPersonDTO);
   public
     procedure SetUp; override;
     procedure TearDown; override;
   published
     procedure TestConfigure;
-    procedure TestMap_params_2;
-    procedure TestMap_params_1;
+    procedure TestMap_AutoConfig;
+    procedure TestMap_CustomConfig;
     procedure TestMap_WithConstructor;
-    procedure TestMap_OverrideExp;
+    procedure TestMap_WithNestedObject;
+    procedure TestMap_WithConstructorAndNestedObject;
+    procedure TestMap_WithOverrideExpression;
   end;
 
 implementation
-
+uses
+  System.SysUtils;
 
 procedure TestTMapper.SetUp;
 begin
-  FLastName   := 'Иванов';
-  FFirstName  := 'Сергей';
-  FMiddleName := 'Николаеивч';
-  FAge        :=  26;
-  FFullName := FLastName+' '+FFirstName+' '+FMiddleName;
+  FAddress := TAddress.Create(CS_STREET, CS_NUM_HOUSE);
+  FPerson  := TPerson.Create(CS_LAST_NAME, CS_FIRST_NAME, CS_MIDDLE_NAME, CS_AGE, FAddress);
+
   FMapper := Mapper;
 end;
 
 procedure TestTMapper.TearDown;
 begin
 //  FMapper.Free;
+  FPerson.Free;
+  FAddress.Free;
 end;
-
+//---
 procedure TestTMapper.TestConfigure;
 begin
   _configure;
-end;
-
-procedure TestTMapper.TestMap_OverrideExp;
-var
-  FPerson:    TPerson;
-  FUserDTO:   TUserDTO;
-  FPersonDTO: TPersonDTO;
-  FOverrideString: string;
-begin
-  _configure;
-  FOverrideString := 'Override Expression.';
-
-  FPerson := TPerson.Create(FLastName, FFirstName, FMiddleName, FAge);
-
-  FUserDTO    := Mapper.Map<TPerson, TUserDTO>(FPerson, procedure (const FPerson: TPerson; out FUserDTO: TUserDTO)
-                                                            begin
-                                                              FUserDTO.FullName := FOverrideString;
-
-                                                              FUserDTO.Age      := FPerson.Age;
-                                                            end);
-  FPersonDTO  := Mapper.Map<TPersonDTO>(FPerson);
-
-  CheckEquals(FOverrideString,  FUserDTO.FullName);
-  CheckEquals(FAge,             FUserDTO.Age);
-  CheckEquals(FLastName,        FPersonDTO.LastName);
-  CheckEquals(FFirstName,       FPersonDTO.FirstName);
-  CheckEquals(FMiddleName,      FPerson.MiddleName);
-  CheckEquals(FAge,             FPerson.Age);
-end;
-
-procedure TestTMapper.TestMap_params_1;
-var
-  FPerson:    TPerson;
-  FUserDTO:   TUserDTO;
-  FPersonDTO: TPersonDTO;
-begin
-  _configure;
-
-  FPerson := TPerson.Create(FLastName, FFirstName, FMiddleName, FAge);
-
-  FUserDTO    := Mapper.Map<TUserDTO>(FPerson);
-  FPersonDTO  := Mapper.Map<TPersonDTO>(FPerson);
-
-  CheckEquals(FFullName,    FUserDTO.FullName);
-  CheckEquals(FAge,         FUserDTO.Age);
-  CheckEquals(FLastName,    FPersonDTO.LastName);
-  CheckEquals(FFirstName,   FPersonDTO.FirstName);
-  CheckEquals(FMiddleName,  FPerson.MiddleName);
-  CheckEquals(FAge,         FPerson.Age);
-end;
-
-procedure TestTMapper.TestMap_params_2;
-var
-  FPerson:    TPerson;
-  FUserDTO:   TUserDTO;
-  FPersonDTO: TPersonDTO;
-
-begin
-  _configure;
-
-  FPerson := TPerson.Create(FLastName, FFirstName, FMiddleName, FAge);
-
-  FUserDTO    := Mapper.Map<TPerson, TUserDTO>(FPerson);
-  FPersonDTO  := Mapper.Map<TPerson, TPersonDTO>(FPerson);
-
-  CheckEquals(FFullName,    FUserDTO.FullName);
-  CheckEquals(FAge,         FUserDTO.Age);
-  CheckEquals(FLastName,    FPersonDTO.LastName);
-  CheckEquals(FFirstName,   FPersonDTO.FirstName);
-  CheckEquals(FMiddleName,  FPersonDTO.MiddleName);
-  CheckEquals(FAge,         FPersonDTO.Age,
-              'В исходном объекте свойство Age: Nullabe<integer>, а в результатирующем Age: integer. Автоматический Cast стандартными средствами не возможен');
-end;
-
-procedure TestTMapper.TestMap_WithConstructor;
- var
-  FPerson:    TPerson;
-  FPersonDTO: TPersonDTO;
-begin
-  _configure;
-
-  FPersonDTO := TPersonDTO.Create;
-  FPersonDTO.Age        := FAge;
-  FPersonDTO.LastName   := FLastName;
-  FPersonDTO.FirstName  := FFirstName;
-  FPersonDTO.MiddleName := FMiddleName;
-
-  FPerson := mapper.Map<TPerson>(FPersonDTO);
-
-  CheckEquals(FLastName,    FPerson.LastName);
-  CheckEquals(FFirstName,   FPerson.FirstName);
-  CheckEquals(FMiddleName,  FPerson.MiddleName);
-  CheckEquals(FAge,         FPerson.Age);
 end;
 
 procedure TestTMapper._Configure;
@@ -168,21 +92,152 @@ begin
                                                         begin
                                                           FUserDTO.FullName := FPerson.LastName    +' '+
                                                                                FPerson.FirstName   +' '+
-                                                                               FPerson.MiddleName;
-
-                                                          FUserDTO.Age      := FPerson.Age;
+                                                                               FPerson.MiddleName  +', возраст: '+
+                                                                               FPerson.Age.ToString;
+                                                          FUserDTO.Address  := 'ул. '+ FPerson.Address.Street
+                                                                              +' д. '+ FPerson.Address.NumHouse.ToString;
                                                         end
                                                       )
+                       .CreateMap<TAddress, TAddressDTO>
+                       .CreateMap<TAddressDTO, TAddress>(procedure (const FAddressDTO: TAddressDTO; out FAddress: TAddress)
+                                                          begin
+                                                            FAddress := TAddress.Create(FAddressDTO.Street,
+                                                                                        FAddressDTO.NumHouse);
+                                                          end
+                                                        )
                        .CreateMap<TPersonDTO, TPerson>(procedure (const FPersonDTO: TPersonDTO; out FPerson: TPerson)
                                                         begin
                                                           FPerson := TPerson.Create(FPersonDTO.LastName,
                                                                                     FPersonDTO.FirstName,
                                                                                     FPersonDTO.MiddleName,
-                                                                                    FPersonDTO.Age);
+                                                                                    FPersonDTO.Age,
+                                                                                    mapper.Map<TAddress>(FPersonDTO.Address));
                                                         end
                                                       )
-                       .CreateMap<TPerson, TPersonDTO>();
+                       .CreateMap<TPerson, TPersonDTO>(procedure (const s: TPerson; out d: TPersonDTO)
+                                                        begin
+                                                          d.LastName    := s.LastName;
+                                                          d.FirstName   := s.FirstName;
+                                                          d.MiddleName  := s.MiddleName;
+                                                          d.Age         := s.Age;
+                                                          d.Address     := mapper.Map<TAddressDTO>(s.Address);
+                                                        end
+                                                       )
+                       .CreateMap<TPerson, TSimplePersonDTO>();
+
                   end);
+end;
+
+procedure TestTMapper.TestMap_AutoConfig;
+var
+  FSimplePersonDTO: TSimplePersonDTO;
+begin
+  _configure;
+
+  FSimplePersonDTO := mapper.Map<TSimplePersonDTO>(FPerson);
+
+  CheckEquals(CS_LAST_NAME,   FSimplePersonDTO.Last_Name);
+  CheckEquals(CS_FIRST_NAME,  FSimplePersonDTO.First_Name);
+  { TODO : Добавить возможность устанавливать кастомное приведение типов. }
+  CheckEquals(CS_MIDDLE_NAME, FSimplePersonDTO.Middle_Name, 'Так как в объекте ресурса MiddleName: Nullable<string>, а в объекте назначения Middle_Mame: string - автоматическое приведение типов стандртными средствами не возможно.');
+end;
+
+procedure TestTMapper.TestMap_CustomConfig;
+var
+  FUserDTO: TUserDTO;
+begin
+  _configure;
+
+  FUserDTO := mapper.Map<TUserDTO>(FPerson);
+
+  CheckEquals(CS_FULL_NAME,    FUserDTO.FullName);
+  CheckEquals(CS_FULL_ADDRESS, FUserDTO.Address);
+end;
+
+procedure TestTMapper.TestMap_WithConstructor;
+ var
+  FAddress:   TAddress;
+  FAddressDTO: TAddressDTO;
+begin
+  _configure;
+  CreateAddressDTO(FAddressDTO);
+
+  FAddress := mapper.Map<TAddress>(FAddressDTO);
+
+  CheckEquals(CS_STREET,    FAddress.Street);
+  CheckEquals(CS_NUM_HOUSE, FAddress.NumHouse);
+end;
+
+procedure TestTMapper.TestMap_WithNestedObject;
+var
+  FPersonDTO: TPersonDTO;
+begin
+  _configure;
+
+  FPersonDTO := mapper.Map<TPersonDTO>(FPerson);
+
+  CheckEquals(CS_LAST_NAME,    FPersonDTO.LastName);
+  CheckEquals(CS_FIRST_NAME,   FPersonDTO.FirstName);
+  CheckEquals(CS_MIDDLE_NAME,  FPersonDTO.MiddleName.Value);
+  CheckEquals(CS_AGE,          FPersonDTO.Age.Value);
+  CheckEquals(CS_STREET,       FPersonDTO.Address.Street);
+  CheckEquals(CS_NUM_HOUSE,    FPersonDTO.Address.NumHouse);
+end;
+
+procedure TestTMapper.TestMap_WithConstructorAndNestedObject;
+var
+  FPerson: TPerson;
+  FPersonDTO: TPersonDTO;
+  FAddressDTO: TAddressDTO;
+begin
+  _configure;
+
+  CreateAddressDTO(FAddressDTO);
+  CreatePersonDTO(FAddressDTO, FPersonDTO);
+
+  FPerson := mapper.Map<TPerson>(FPersonDTO);
+
+  CheckEquals(CS_LAST_NAME,    FPerson.LastName);
+  CheckEquals(CS_FIRST_NAME,   FPerson.FirstName);
+  CheckEquals(CS_MIDDLE_NAME,  FPerson.MiddleName.Value);
+  CheckEquals(CS_AGE,          FPerson.Age.Value);
+  CheckEquals(CS_STREET,       FPerson.Address.Street);
+  CheckEquals(CS_NUM_HOUSE,    FPerson.Address.NumHouse);
+end;
+
+procedure TestTMapper.TestMap_WithOverrideExpression;
+var
+  FUserDTO: TUserDTO;
+begin
+  _configure;
+
+  FUserDTO := mapper.Map<TPerson, TUserDTO>(FPerson, procedure (const s: TPerson; out d:  TUserDTO)
+                                              begin
+                                                d.FullName := CS_OVERRIDE_FULL_NAME;
+                                                d.Address  := СS_OVERRIDE_ADDRESS;
+                                              end
+                                            );
+
+  CheckEquals(CS_OVERRIDE_FULL_NAME, FUserDTO.FullName);
+  CheckEquals(СS_OVERRIDE_ADDRESS,   FUserDTO.Address);
+end;
+
+procedure TestTMapper.CreatePersonDTO(FAddressDTO: TAddressDTO; var FPersonDTO: TPersonDTO);
+begin
+  FPersonDTO := TPersonDTO.Create;
+  FPersonDTO.LastName   := CS_LAST_NAME;
+  FPersonDTO.FirstName  := CS_FIRST_NAME;
+  FPersonDTO.MiddleName := CS_MIDDLE_NAME;
+  FPersonDTO.Age        := CS_AGE;
+  FPersonDTO.Address    := FAddressDTO;
+end;
+
+
+procedure TestTMapper.CreateAddressDTO(var FAddressDTO: TAddressDTO);
+begin
+  FAddressDTO := TAddressDTO.Create;
+  FAddressDTO.Street   := CS_STREET;
+  FAddressDTO.NumHouse := CS_NUM_HOUSE;
 end;
 
 initialization

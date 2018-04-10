@@ -116,6 +116,7 @@
         <DCCReference Include="..\Source\AutoMapper.MapEngine.pas"/>
         <DCCReference Include="Test.Models.pas"/>
         <DCCReference Include="TestAutoMapper.pas"/>
+        <DCCReference Include="Test.ModelsDTO.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
