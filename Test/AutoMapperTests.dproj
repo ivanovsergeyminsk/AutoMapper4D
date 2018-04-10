@@ -106,7 +106,6 @@
         <DelphiCompile Include="$(MainSource)">
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
-        <DCCReference Include="TestAutoMapper.pas"/>
         <DCCReference Include="..\Source\AutoMapper.ConfigurationProvider.pas"/>
         <DCCReference Include="..\Source\AutoMapper.MappingExpression.pas"/>
         <DCCReference Include="..\Source\AutoMapper.Mapper.pas"/>
@@ -116,6 +115,7 @@
         <DCCReference Include="..\Source\AutoMapper.Exceptions.pas"/>
         <DCCReference Include="..\Source\AutoMapper.MapEngine.pas"/>
         <DCCReference Include="Test.Models.pas"/>
+        <DCCReference Include="TestAutoMapper.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

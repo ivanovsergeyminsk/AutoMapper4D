@@ -6,23 +6,25 @@ uses
   Spring;
 
 type
+  TMapExpression<TSource, TDestination> = reference to procedure (const source: TSource; out dest: TDestination);
+
   TMapExpCollections = class
   strict private
-    class var FMapExpProperties: TAction<TObject, TObject>;
-    class var FMapExpFields:     TAction<TObject, TObject>;
-    class var FMapExpPropsFields: TAction<TObject, TObject>;
+    class var FMapExpProperties: TMapExpression<TObject, TObject>;
+    class var FMapExpFields:     TMapExpression<TObject, TObject>;
+    class var FMapExpPropsFields: TMapExpression<TObject, TObject>;
 
-    class procedure _MapExpProperties(const source: TObject; const dest: TObject); static;
-    class procedure _MapExpFields(const source: TObject; const dest: TObject); static;
-    class procedure _MapExpPropsFields(const source: TObject; const dest: TObject); static;
+    class procedure _MapExpProperties(const source: TObject; out dest: TObject); static;
+    class procedure _MapExpFields(const source: TObject; out dest: TObject); static;
+    class procedure _MapExpPropsFields(const source: TObject; out dest: TObject); static;
   private
-    class function GetMapExpProperties:   TAction<TObject, TObject>; static;
-    class function GetMapExpFields:       TAction<TObject, TObject>; static;
-    class function GetMapExpPropsFields:  TAction<TObject, TObject>; static;
+    class function GetMapExpProperties:   TMapExpression<TObject, TObject>; static;
+    class function GetMapExpFields:       TMapExpression<TObject, TObject>; static;
+    class function GetMapExpPropsFields:  TMapExpression<TObject, TObject>; static;
   public
-    class property MapExpProperties:  TAction<TObject, TObject> read GetMapExpProperties;
-    class property MapExpFields:      TAction<TObject, TObject> read GetMapExpFields;
-    class property MapExpPropsFields: TAction<TObject, TObject> read GetMapExpPropsFields;
+    class property MapExpProperties:  TMapExpression<TObject, TObject> read GetMapExpProperties;
+    class property MapExpFields:      TMapExpression<TObject, TObject> read GetMapExpFields;
+    class property MapExpPropsFields: TMapExpression<TObject, TObject> read GetMapExpPropsFields;
   end;
 
 implementation
@@ -32,7 +34,7 @@ uses
 
 { TMapExpCollections }
 
-class function TMapExpCollections.GetMapExpFields: TAction<TObject, TObject>;
+class function TMapExpCollections.GetMapExpFields: TMapExpression<TObject, TObject>;
 begin
   if not Assigned(FMapExpFields) then
     FMapExpFields := _MapExpFields;
@@ -40,7 +42,7 @@ begin
   result := FMapExpFields;
 end;
 
-class function TMapExpCollections.GetMapExpProperties: TAction<TObject, TObject>;
+class function TMapExpCollections.GetMapExpProperties: TMapExpression<TObject, TObject>;
 begin
   if not Assigned(FMapExpProperties) then
     FMapExpProperties := _MapExpProperties;
@@ -48,7 +50,7 @@ begin
   Result := FMapExpProperties;
 end;
 
-class function TMapExpCollections.GetMapExpPropsFields: TAction<TObject, TObject>;
+class function TMapExpCollections.GetMapExpPropsFields: TMapExpression<TObject, TObject>;
 begin
   if not Assigned(FMapExpPropsFields) then
     FMapExpPropsFields := _MapExpPropsFields;
@@ -56,10 +58,10 @@ begin
   Result := FMapExpPropsFields;
 end;
 
-class procedure TMapExpCollections._MapExpFields(const source, dest: TObject);
+class procedure TMapExpCollections._MapExpFields(const source: TObject; out dest: TObject);
 var
   Ctx: TRttiContext;
-  FDestRttiType, FSourceRttiType, FPropType: TRttiType;
+  FDestRttiType, FSourceRttiType: TRttiType;
 
   FDestRttiField, FSourceRttiField: TRttiField;
   FBufValue, FSourceValue, FDestValue: TValue;
@@ -87,10 +89,10 @@ begin
   Ctx.Free;
 end;
 
-class procedure TMapExpCollections._MapExpProperties(const source, dest: TObject);
+class procedure TMapExpCollections._MapExpProperties(const source: TObject; out dest: TObject);
 var
   Ctx: TRttiContext;
-  FDestRttiType, FSourceRttiType, FPropType: TRttiType;
+  FDestRttiType, FSourceRttiType: TRttiType;
 
   FDestRttiProp, FSourceRttiProp: TRttiProperty;
   FBufValue, FSourceValue, FDestValue: TValue;
@@ -118,7 +120,7 @@ begin
   Ctx.Free;
 end;
 
-class procedure TMapExpCollections._MapExpPropsFields(const source, dest: TObject);
+class procedure TMapExpCollections._MapExpPropsFields(const source: TObject; out dest: TObject);
 var
   Ctx: TRttiContext;
   FDestRttiType, FSourceRttiType, FPropType: TRttiType;

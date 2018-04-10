@@ -4,7 +4,9 @@ interface
 uses
   AutoMapper.CfgMapper,
   AutoMapper.ClassPair,
-  AutoMapper.MapItem, Spring
+  AutoMapper.MapItem,
+  AutoMapper.MappingExpression,
+  Spring
   ;
 
 type
@@ -13,7 +15,7 @@ type
     FCfgMapper: TCfgMapper;
 
     function CreateInstance<TDestination: Class>: TDestination;
-    function GetExpression<TSource, TDestination>(const AClassPair: TClassPair): TAction<TSource, TDestination>;
+    function GetExpression<TSource, TDestination>(const AClassPair: TClassPair): TMapExpression<TSource, TDestination>;
   public
     constructor Create(const ACfgMapper: TCfgMapper);
     destructor Destroy; override;
@@ -47,8 +49,10 @@ begin
   FRttiType := Ctx.GetType(TypeInfo(TDestination));
   FRttiInstance := FRttiType.AsInstance;
 
-  FDestValue := FRttiInstance.GetMethod('Create').Invoke(FRttiInstance.MetaclassType,[]);
-  FDestObj := FDestValue.AsObject;
+  FDestObj := FRttiInstance.MetaclassType.Create;
+
+//  FDestValue := FRttiInstance.GetMethod('Create').Invoke(FRttiInstance.MetaclassType,[]);
+//  FDestObj := FDestValue.AsObject;
 
   Result := FDestObj as TDestination;
 
@@ -62,11 +66,11 @@ begin
   inherited;
 end;
 
-function TMapEngine.GetExpression<TSource, TDestination>(const AClassPair: TClassPair): TAction<TSource, TDestination>;
+function TMapEngine.GetExpression<TSource, TDestination>(const AClassPair: TClassPair): TMapExpression<TSource, TDestination>;
 var
   FMapItem: TMapItem;
   FExpValue: TValue;
-  FExp: TAction<TSource, TDestination>;
+  FExp: TMapExpression<TSource, TDestination>;
 begin
   FMapItem    := FCfgMapper.GetMapItem(AClassPair);
   FExpValue   := FMapItem.Exp;
@@ -80,7 +84,7 @@ function TMapEngine.Map<TDestination>(const source: TObject): TDestination;
 var
   FClassPair: TClassPair;
   FDestination: TDestination;
-  FExp: TAction<TObject, TDestination>;
+  FExp: TMapExpression<TObject, TDestination>;
 
   Ctx: TRttiContext;
   FRttiType: TRttiType;
@@ -88,10 +92,10 @@ var
   FDestValue: TValue;
   FDestObj: TObject;
 begin
-  FDestination := CreateInstance<TDestination>();
   FClassPair := TClassPair.Create(source.ClassType, TDestination);
-
   FExp := GetExpression<TObject, TDestination>(FClassPair);
+
+  FDestination := CreateInstance<TDestination>();
 
   FExp(source, FDestination);
 
@@ -102,12 +106,12 @@ function TMapEngine.Map<TSource, TDestination>(const source: TSource): TDestinat
 var
   FClassPair: TClassPair;
   FDestination: TDestination;
-  FExp: TAction<TSource, TDestination>;
+  FExp: TMapExpression<TSource, TDestination>;
 begin
-  FDestination := CreateInstance<TDestination>();
-
   FClassPair  := TClassPair.Create(TSource, TDestination);
   FExp := GetExpression<TSource, TDestination>(FClassPair);
+
+  FDestination := CreateInstance<TDestination>();
 
   FExp(source,FDestination);
 

@@ -25,6 +25,11 @@ type
 
   TestTMapper = class(TTestCase)
   strict private
+    FLastName   : string;
+    FFirstName  : string;
+    FMiddleName : string;
+    FAge        : integer;
+    FFullName   : string;
     FMapper: TMapper;
     procedure _Configure;
   public
@@ -34,6 +39,7 @@ type
     procedure TestConfigure;
     procedure TestMap_params_2;
     procedure TestMap_params_1;
+    procedure TestMap_WithConstructor;
   end;
 
 implementation
@@ -41,6 +47,11 @@ implementation
 
 procedure TestTMapper.SetUp;
 begin
+  FLastName   := 'Иванов';
+  FFirstName  := 'Сергей';
+  FMiddleName := 'Николаеивч';
+  FAge        :=  26;
+  FFullName := FLastName+' '+FFirstName+' '+FMiddleName;
   FMapper := Mapper;
 end;
 
@@ -59,28 +70,20 @@ var
   FPerson:    TPerson;
   FUserDTO:   TUserDTO;
   FPersonDTO: TPersonDTO;
-
-  FFirstName, FLastName, FMiddleName, FFullName: string;
-  FAge: integer;
 begin
   _configure;
-  FLastName   := 'Иванов';
-  FFirstName  := 'Сергей';
-  FMiddleName := 'Николаеивч';
-  FAge        :=  26;
-  FFullName := FLastName+' '+FFirstName+' '+FMiddleName;
 
   FPerson := TPerson.Create(FLastName, FFirstName, FMiddleName, FAge);
 
   FUserDTO    := Mapper.Map<TUserDTO>(FPerson);
   FPersonDTO  := Mapper.Map<TPersonDTO>(FPerson);
 
-  CheckEquals(FFullName, FUserDTO.FullName);
-  CheckEquals(FAge, FUserDTO.Age);
-  CheckEquals(FLastName, FPersonDTO.LastName);
-  CheckEquals(FFirstName, FPersonDTO.FirstName);
-  CheckEquals(FMiddleName, FPerson.MiddleName);
-  CheckEquals(FAge, FPerson.Age);
+  CheckEquals(FFullName,    FUserDTO.FullName);
+  CheckEquals(FAge,         FUserDTO.Age);
+  CheckEquals(FLastName,    FPersonDTO.LastName);
+  CheckEquals(FFirstName,   FPersonDTO.FirstName);
+  CheckEquals(FMiddleName,  FPerson.MiddleName);
+  CheckEquals(FAge,         FPerson.Age);
 end;
 
 procedure TestTMapper.TestMap_params_2;
@@ -89,27 +92,42 @@ var
   FUserDTO:   TUserDTO;
   FPersonDTO: TPersonDTO;
 
-  FFirstName, FLastName, FMiddleName, FFullName: string;
-  FAge: integer;
 begin
   _configure;
-  FLastName   := 'Иванов';
-  FFirstName  := 'Сергей';
-  FMiddleName := 'Николаеивч';
-  FAge        :=  26;
-  FFullName := FLastName+' '+FFirstName+' '+FMiddleName;
 
   FPerson := TPerson.Create(FLastName, FFirstName, FMiddleName, FAge);
 
   FUserDTO    := Mapper.Map<TPerson, TUserDTO>(FPerson);
   FPersonDTO  := Mapper.Map<TPerson, TPersonDTO>(FPerson);
 
-  CheckEquals(FFullName, FUserDTO.FullName);
-  CheckEquals(FAge, FUserDTO.Age);
-  CheckEquals(FLastName,   FPersonDTO.LastName);
-  CheckEquals(FFirstName,  FPersonDTO.FirstName);
-  CheckEquals(FMiddleName, FPersonDTO.MiddleName);
-  CheckEquals(FAge, FPersonDTO.Age, 'В исходном объекте свойство Age: Nullabe<integer>, а в результатирующем Age: integer. Автоматический Cast стандартными средствами не возможен');
+  CheckEquals(FFullName,    FUserDTO.FullName);
+  CheckEquals(FAge,         FUserDTO.Age);
+  CheckEquals(FLastName,    FPersonDTO.LastName);
+  CheckEquals(FFirstName,   FPersonDTO.FirstName);
+  CheckEquals(FMiddleName,  FPersonDTO.MiddleName);
+  CheckEquals(FAge,         FPersonDTO.Age,
+              'В исходном объекте свойство Age: Nullabe<integer>, а в результатирующем Age: integer. Автоматический Cast стандартными средствами не возможен');
+end;
+
+procedure TestTMapper.TestMap_WithConstructor;
+ var
+  FPerson:    TPerson;
+  FPersonDTO: TPersonDTO;
+begin
+  _configure;
+
+  FPersonDTO := TPersonDTO.Create;
+  FPersonDTO.Age        := FAge;
+  FPersonDTO.LastName   := FLastName;
+  FPersonDTO.FirstName  := FFirstName;
+  FPersonDTO.MiddleName := FMiddleName;
+
+  FPerson := mapper.Map<TPerson>(FPersonDTO);
+
+  CheckEquals(FLastName,    FPerson.LastName);
+  CheckEquals(FFirstName,   FPerson.FirstName);
+  CheckEquals(FMiddleName,  FPerson.MiddleName);
+  CheckEquals(FAge,         FPerson.Age);
 end;
 
 procedure TestTMapper._Configure;
@@ -117,13 +135,21 @@ begin
   Mapper.Reset;
   Mapper.Configure(procedure (const cfg: TConfigurationProvider)
                   begin
-                    cfg.CreateMap<TPerson, TUserDTO>(procedure (const FPerson: TPerson; const FUserDTO: TUserDTO)
+                    cfg.CreateMap<TPerson, TUserDTO>(procedure (const FPerson: TPerson; out FUserDTO: TUserDTO)
                                                         begin
                                                           FUserDTO.FullName := FPerson.LastName    +' '+
                                                                                FPerson.FirstName   +' '+
                                                                                FPerson.MiddleName;
 
                                                           FUserDTO.Age      := FPerson.Age;
+                                                        end
+                                                      )
+                       .CreateMap<TPersonDTO, TPerson>(procedure (const FPersonDTO: TPersonDTO; out FPerson: TPerson)
+                                                        begin
+                                                          FPerson := TPerson.Create(FPersonDTO.LastName,
+                                                                                    FPersonDTO.FirstName,
+                                                                                    FPersonDTO.MiddleName,
+                                                                                    FPersonDTO.Age);
                                                         end
                                                       )
                        .CreateMap<TPerson, TPersonDTO>();
