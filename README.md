@@ -79,7 +79,7 @@
  Mapper.Configure(procedure (const cfg: TConfigurationProvider)
                   begin
                         //пользовательский маппинг.
-                    cfg.CreateMap<TPerson, TUserDTO>(procedure (const FPerson: TPerson; const FUserDTO: TUserDTO)
+                    cfg.CreateMap<TPerson, TUserDTO>(procedure (const FPerson: TPerson; out FUserDTO: TUserDTO)
                                                         begin
                                                           FUserDTO.FullName := FPerson.LastName    +' '+
                                                                                FPerson.FirstName   +' '+
@@ -88,6 +88,15 @@
                                                           FUserDTO.Age      := FPerson.Age;
                                                         end
                                                       )
+                        //пользовательский мапинг, если объекту назначения требуются параметры для конструктора.
+                       .CreateMap<TPersonDTO, TPerson>(procedure (const FPersonDTO: TPersonDTO; out FPerson: TPerson 
+                                                        begin
+                                                          FPerson := TPerson.Create(FPersonDTO.LastName,
+                                                                                    FPersonDTO.FirstName,
+                                                                                    FPersonDTO.MiddleName,
+                                                                                    FPersonDTO.Age)
+                                                        end
+                                                       )
                         //автоматический маппинг по public и published полям и свойствам.
                        .CreateMap<TPerson, TPersonDTO>(); 
                   end); 
@@ -101,7 +110,7 @@
  //...
  
  var
-  FPerson:    TPerson;
+  FPerson, FDestPerson: TPerson;
   FUserDTO:   TUserDTO;
   FPersonDTO: TPersonDTO;
 begin
@@ -109,5 +118,6 @@ begin
 
   FPersonDTO  := Mapper.Map<TPerson, TPersonDTO>(FPerson);
   FUserDTO    := Mapper.Map<TUserDTO>(FPerson); // Без указания типа исходного объектра
+  FDestPerson := Mapper.Map<TPerson>(FPersonDTO);
 end;
 ```
