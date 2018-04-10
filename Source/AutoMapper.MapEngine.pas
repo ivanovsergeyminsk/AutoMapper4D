@@ -21,8 +21,9 @@ type
     destructor Destroy; override;
 
     function Map<TSource: Class; TDestination: Class>(const source: TSource): TDestination; overload;
+    function Map<TSource: Class; TDestination: Class>(const source: TSource; const MapExpression: TMapExpression<TSource, TDestination>): TDestination; overload;
     function Map<TDestination: Class>(const source: TObject): TDestination; overload;
-
+    function Map<TDestination: Class>(const source: TObject; const MapExpression: TMapExpression<TObject, TDestination>): TDestination; overload;
   end;
 
 implementation
@@ -86,10 +87,6 @@ var
   FDestination: TDestination;
   FExp: TMapExpression<TObject, TDestination>;
 
-  Ctx: TRttiContext;
-  FRttiType: TRttiType;
-  FRttiInstance: TRttiInstanceType;
-  FDestValue: TValue;
   FDestObj: TObject;
 begin
   FClassPair := TClassPair.Create(source.ClassType, TDestination);
@@ -114,6 +111,32 @@ begin
   FDestination := CreateInstance<TDestination>();
 
   FExp(source,FDestination);
+
+  Result := FDestination;
+end;
+
+function TMapEngine.Map<TDestination>(const source: TObject;
+  const MapExpression: TMapExpression<TObject, TDestination>): TDestination;
+var
+  FDestination: TDestination;
+
+  FDestObj: TObject;
+begin
+  FDestination := CreateInstance<TDestination>();
+
+  MapExpression(source, FDestination);
+
+  Result := FDestination;
+end;
+
+function TMapEngine.Map<TSource, TDestination>(const source: TSource;
+  const MapExpression: TMapExpression<TSource, TDestination>): TDestination;
+var
+  FDestination: TDestination;
+begin
+  FDestination := CreateInstance<TDestination>();
+
+  MapExpression(source,FDestination);
 
   Result := FDestination;
 end;
