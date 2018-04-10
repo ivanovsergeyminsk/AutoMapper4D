@@ -5,83 +5,55 @@ uses
   Spring,
   System.Variants;
 type
+  TAddress = class
+    private
+      FStreet: string;
+      FNumHouse: integer;
+    public
+    property Street: string read FStreet;
+    property NumHouse: integer read FNumHouse;
+
+    constructor Create(const AStreet: string; const ANumHouse: integer);
+  end;
+
   TPerson = class
   private
     FLastName: string;
     FFirstName: string;
     FMiddleName: Nullable<string>;
     FAge: Nullable<integer>;
-
+    FAddress: TAddress;
   public
     property LastName: string read FLastName;
     property FirstName: string read FFirstName;
     property MiddleName: Nullable<string> read FMiddleName;
     property Age: Nullable<integer> read FAge;
-
-    constructor Create(ALastName, AFirstName: string; AMiddleName: Nullable<string>; AAge: Nullable<integer>); overload;
+    property Address: TAddress read FAddress;
+    constructor Create(ALastName, AFirstName: string; AMiddleName: Nullable<string>; AAge: Nullable<integer>; AAddress: TAddress); overload;
   end;
 
-  TPersonDTO = class
-  private
-    FMiddleName: Nullable<string>;
-    FFirstName: string;
-    procedure SetFirstName(const Value: string);
-    procedure SetMiddleName(const Value: Nullable<string>);
-  public
-    Age: integer;
-    LastName: string;
-    property FirstName: string read FFirstName write SetFirstName;
-    property MiddleName: Nullable<string> read FMiddleName write SetMiddleName;
-  end;
 
-  {$M+}
-  TUserDTO = class
-  private
-    FAge: integer;
-    FFullName: string;
-    procedure SetAge(const Value: integer);
-    procedure SetFullName(const Value: string);
-  published
-    property FullName: string read FFullName write SetFullName;
-    property Age: integer read FAge write SetAge;
-  end;
-  {$M-}
 
 implementation
 
 { TPerson }
 
 constructor TPerson.Create(ALastName, AFirstName: string;
-  AMiddleName: Nullable<string>; AAge: Nullable<integer>);
+  AMiddleName: Nullable<string>; AAge: Nullable<integer>; AAddress: TAddress);
 begin
   FLastName   := ALastName;
   FFirstName  := AFirstName;
   FMiddleName := AMiddleName;
   FAge        := AAge;
+  FAddress    := AAddress;
 end;
 
-{ TPersonDTO }
+{ TAddress }
 
-procedure TPersonDTO.SetFirstName(const Value: string);
+constructor TAddress.Create(const AStreet: string; const ANumHouse: integer);
 begin
-  FFirstName := Value;
-end;
-
-procedure TPersonDTO.SetMiddleName(const Value: Nullable<string>);
-begin
-  FMiddleName := Value;
-end;
-
-{ TUserDTO }
-
-procedure TUserDTO.SetAge(const Value: integer);
-begin
-  FAge := Value;
-end;
-
-procedure TUserDTO.SetFullName(const Value: string);
-begin
-  FFullName := Value;
+  FStreet := AStreet;
+  FNumHouse := ANumHouse;
 end;
 
 end.

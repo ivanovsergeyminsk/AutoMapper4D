@@ -25,7 +25,8 @@ uses
   AutoMapper.Exceptions in '..\Source\AutoMapper.Exceptions.pas',
   AutoMapper.MapEngine in '..\Source\AutoMapper.MapEngine.pas',
   Test.Models in 'Test.Models.pas',
-  TestAutoMapper in 'TestAutoMapper.pas';
+  TestAutoMapper in 'TestAutoMapper.pas',
+  Test.ModelsDTO in 'Test.ModelsDTO.pas';
 
 {$R *.RES}
 
