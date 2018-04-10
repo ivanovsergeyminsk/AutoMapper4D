@@ -40,6 +40,7 @@ type
     procedure TestMap_params_2;
     procedure TestMap_params_1;
     procedure TestMap_WithConstructor;
+    procedure TestMap_OverrideExp;
   end;
 
 implementation
@@ -63,6 +64,34 @@ end;
 procedure TestTMapper.TestConfigure;
 begin
   _configure;
+end;
+
+procedure TestTMapper.TestMap_OverrideExp;
+var
+  FPerson:    TPerson;
+  FUserDTO:   TUserDTO;
+  FPersonDTO: TPersonDTO;
+  FOverrideString: string;
+begin
+  _configure;
+  FOverrideString := 'Override Expression.';
+
+  FPerson := TPerson.Create(FLastName, FFirstName, FMiddleName, FAge);
+
+  FUserDTO    := Mapper.Map<TPerson, TUserDTO>(FPerson, procedure (const FPerson: TPerson; out FUserDTO: TUserDTO)
+                                                            begin
+                                                              FUserDTO.FullName := FOverrideString;
+
+                                                              FUserDTO.Age      := FPerson.Age;
+                                                            end);
+  FPersonDTO  := Mapper.Map<TPersonDTO>(FPerson);
+
+  CheckEquals(FOverrideString,  FUserDTO.FullName);
+  CheckEquals(FAge,             FUserDTO.Age);
+  CheckEquals(FLastName,        FPersonDTO.LastName);
+  CheckEquals(FFirstName,       FPersonDTO.FirstName);
+  CheckEquals(FMiddleName,      FPerson.MiddleName);
+  CheckEquals(FAge,             FPerson.Age);
 end;
 
 procedure TestTMapper.TestMap_params_1;
