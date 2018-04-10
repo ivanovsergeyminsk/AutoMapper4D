@@ -3,7 +3,8 @@
 interface
 uses
   AutoMapper.CfgMapper,
-  Spring;
+  Spring,
+  AutoMapper.MappingExpression;
 type
   TConfigurationProvider = class
   protected
@@ -11,7 +12,7 @@ type
     constructor Create(const CfgMapper: TCfgMapper); virtual;
     destructor Destroy; override;
   public
-    function CreateMap<TSource: Class; TDestination: Class>(const MappingExpression: TAction<TSource, TDestination>): TConfigurationProvider; overload;
+    function CreateMap<TSource: Class; TDestination: Class>(const MappingExpression: TMapExpression<TSource, TDestination>): TConfigurationProvider; overload;
     function CreateMap<TSource: Class; TDestination: Class>(): TConfigurationProvider; overload;
 
     procedure Validate;
@@ -32,7 +33,7 @@ begin
 end;
 
 function TConfigurationProvider.CreateMap<TSource, TDestination>(
-  const MappingExpression: TAction<TSource, TDestination>): TConfigurationProvider;
+  const MappingExpression: TMapExpression<TSource, TDestination>): TConfigurationProvider;
 begin
   FCfgMapper.CreateMap<TSource, TDestination>(MappingExpression);
   result := Self;

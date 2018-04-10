@@ -16,14 +16,14 @@ type
   private
     FMapItems: IDictionary<TClassPair, TMapItem>;
 
-    function ExpToValue<TSource: Class; TDestination: Class>(const AExp: TAction<TSource, TDestination>): TValue; overload;
+    function ExpToValue<TSource: Class; TDestination: Class>(const AExp: TMapExpression<TSource, TDestination>): TValue; overload;
   public
     constructor Create;
     destructor Destroy; override;
 
     function GetMapItem(const AClassPair: TClassPair): TMapItem;
 //    procedure CreateMap<TSource, TDestination>(); overload;
-    procedure CreateMap<TSource: Class; TDestination: Class>(const MappingExpression: TAction<TSource, TDestination>); overload;
+    procedure CreateMap<TSource: Class; TDestination: Class>(const MappingExpression: TMapExpression<TSource, TDestination>); overload;
     procedure CreateMap<TSource: Class; TDestination: Class>; overload;
   end;
 
@@ -37,10 +37,10 @@ uses
 
 constructor TCfgMapper.Create;
 begin
-  FMapItems := TCollections.CreateDictionary<TClassPair, TMapitem>;
+  FMapItems   := TCollections.CreateDictionary<TClassPair, TMapItem>;
 end;
 
-procedure TCfgMapper.CreateMap<TSource, TDestination>(const MappingExpression: TAction<TSource, TDestination>);
+procedure TCfgMapper.CreateMap<TSource, TDestination>(const MappingExpression: TMapExpression<TSource, TDestination>);
 var
   FMapItem: TMapItem;
   FClassPair: TClassPair;
@@ -58,11 +58,11 @@ Var
   FMapItem: TMapItem;
   FClassPair: TClassPair;
   FExpValue: TValue;
-  FExp: TAction<TObject, TObject>;
+  FExp: TMapExpression<TObject, TObject>;
 begin
   FExp := TMapExpCollections.MapExpPropsFields;
   TValue.Make(@FExp,
-               TypeInfo(TAction<TObject, TObject>),
+               TypeInfo(TMapExpression<TObject, TObject>),
                FExpValue);
 
   FClassPair := TClassPair.Create(TSource, TDestination);
@@ -72,11 +72,11 @@ begin
 end;
 
 function TCfgMapper.ExpToValue<TSource, TDestination>(
-  const AExp: TAction<TSource, TDestination>): TValue;
+  const AExp: TMapExpression<TSource, TDestination>): TValue;
 var
   FValue: TValue;
 begin
-  TValue.Make(@AExp, TypeInfo(TAction<TSource, TDestination>), FValue);
+  TValue.Make(@AExp, TypeInfo(TMapExpression<TSource, TDestination>), FValue);
 
   Result := FValue;
 end;

@@ -16,7 +16,6 @@
 
 uses
   DUnitTestRunner,
-  TestAutoMapper in 'TestAutoMapper.pas',
   AutoMapper.ConfigurationProvider in '..\Source\AutoMapper.ConfigurationProvider.pas',
   AutoMapper.MappingExpression in '..\Source\AutoMapper.MappingExpression.pas',
   AutoMapper.Mapper in '..\Source\AutoMapper.Mapper.pas',
@@ -25,7 +24,8 @@ uses
   AutoMapper.ClassPair in '..\Source\AutoMapper.ClassPair.pas',
   AutoMapper.Exceptions in '..\Source\AutoMapper.Exceptions.pas',
   AutoMapper.MapEngine in '..\Source\AutoMapper.MapEngine.pas',
-  Test.Models in 'Test.Models.pas';
+  Test.Models in 'Test.Models.pas',
+  TestAutoMapper in 'TestAutoMapper.pas';
 
 {$R *.RES}
 
