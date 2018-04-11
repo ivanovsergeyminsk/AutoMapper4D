@@ -176,7 +176,7 @@
 begin
   //...
   FPersonDTO  := Mapper.Map<TPerson, TPersonDTO>(FPerson);
-  FUserDTO    := Mapper.Map<TUserDTO>(FPerson); // Без указания типа исходного объектра
+  FUserDTO    := Mapper.Map<TUserDTO>(FPerson); // Без указания типа объекта ресурса.
   FDestPerson := Mapper.Map<TPerson>(FPersonDTO);
   //...
 end;
