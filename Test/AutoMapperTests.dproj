@@ -89,9 +89,7 @@
     <PropertyGroup Condition="'$(Cfg_1_Win32)'!=''">
         <DCC_RemoteDebug>false</DCC_RemoteDebug>
         <DCC_ExeOutput>..\Instance\$(Platform)\$(Config)</DCC_ExeOutput>
-        <DCC_DcuOutput>..\Instance\DCU</DCC_DcuOutput>
-        <DCC_BplOutput>..\Instance\BPL</DCC_BplOutput>
-        <DCC_DcpOutput>..\Instance\DCU</DCC_DcpOutput>
+        <DCC_DcpOutput>..\Instance\$(Platform)\$(Config)\DCU</DCC_DcpOutput>
         <VerInfo_Locale>1033</VerInfo_Locale>
         <Manifest_File>(None)</Manifest_File>
         <DCC_MinimumEnumSize>4</DCC_MinimumEnumSize>
