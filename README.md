@@ -132,7 +132,7 @@
                                                                               +' д. '+ FPerson.Address.NumHouse.ToString;
                                                         end
                                                       )
-                        //Маппинг с вложенным объектом.                              
+                        //Маппинг со вложенным объектом.                              
                        .CreateMap<TPerson, TPersonDTO>(procedure (const s: TPerson; out d: TPersonDTO)
                                                         begin
                                                           d.LastName    := s.LastName;
@@ -149,7 +149,7 @@
                                                                                         FAddressDTO.NumHouse);
                                                           end
                                                         )
-                        //Маппинг с вложенным объектом, если объекту назначения требуются параметры в конструкторе.                 
+                        //Маппинг со вложенным объектом, если объекту назначения требуются параметры в конструкторе.                 
                        .CreateMap<TPersonDTO, TPerson>(procedure (const FPersonDTO: TPersonDTO; out FPerson: TPerson)
                                                         begin
                                                           FPerson := TPerson.Create(FPersonDTO.LastName,
