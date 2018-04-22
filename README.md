@@ -121,7 +121,7 @@
                         //Автоматический маппинг по public и published полям и свойствам.
                     cfg.CreateMap<TAddress, TAddressDTO>
                        .CreateMap<TPerson, TSimplePersonDTO>();
-                       //Пользовательский маппинг с формативанием.                                 
+                       //Пользовательский маппинг с форматированием.                                 
                       .CreateMap<TPerson, TUserDTO>(procedure (const FPerson: TPerson; out FUserDTO: TUserDTO)
                                                         begin
                                                           FUserDTO.FullName := FPerson.LastName    +' '+
