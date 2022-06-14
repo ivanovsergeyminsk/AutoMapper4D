@@ -15,7 +15,7 @@ type
   TMapper = class
   strict private
     class var FInstance: TMapper;
-    destructor Destroy; override;
+    class destructor Destroy;
   private
     ActionCfg: TActionConfigurationProvider;
     Configuration: TConfigurationProvider;
@@ -110,10 +110,11 @@ begin
   Result := FInstance;
 end;
 
-destructor TMapper.Destroy;
+class destructor TMapper.Destroy;
 begin
   Reset;
-  Inherited;
+  if Assigned(TMapper.FInstance) then
+    TMapper.FInstance.Free;
 end;
 
 initialization

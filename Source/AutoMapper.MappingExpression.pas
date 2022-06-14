@@ -133,6 +133,7 @@ begin
   Ctx := TRttiContext.Create;
   FSourceRttiType := Ctx.GetType(source.ClassType);
   FDestRttiType   := Ctx.GetType(dest.ClassType);
+  FDestRttiField := default(TRttiField);
 
   for FDestRttiField in FDestRttiType.GetFields do
     for FSourceRttiField in FSourceRttiType.GetFields do

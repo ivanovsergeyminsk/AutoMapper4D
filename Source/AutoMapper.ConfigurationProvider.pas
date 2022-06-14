@@ -10,17 +10,16 @@ type
   protected
     FCfgMapper: TCfgMapper;
     constructor Create(const CfgMapper: TCfgMapper); virtual;
-    destructor Destroy; override;
   public
     function CreateMap<TSource: Class; TDestination: Class>(const MappingExpression: TMapExpression<TSource, TDestination>): TConfigurationProvider; overload;
     function CreateMap<TSource: Class; TDestination: Class>(): TConfigurationProvider; overload;
-
     procedure Validate;
+    destructor Destroy; override;
   end;
 
   TConfigurationProvderRunTime = class(TConfigurationProvider)
   public
-    constructor Create(const CfgMapper: TCfgMapper); overload;
+    constructor Create(const CfgMapper: TCfgMapper); reintroduce;
   end;
 
 implementation
