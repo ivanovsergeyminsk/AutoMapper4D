@@ -37,6 +37,8 @@ type
       CS_FULL_ADDRESS       = 'ул. '+CS_STREET+' д. 34';
       CS_OVERRIDE_FULL_NAME = 'Петрович Петр Игнатьевич';
       СS_OVERRIDE_ADDRESS   = 'ул. Некрасова';
+      CS_POST               = 'Генеральный менеджер по клинигу';
+      CS_STATUS             = 12;
   strict private
     FAddress    : TAddress;
     FPerson     : TPerson;
@@ -66,7 +68,8 @@ uses
 procedure TestTMapper.SetUp;
 begin
   FAddress := TAddress.Create(CS_STREET, CS_NUM_HOUSE);
-  FPerson  := TPerson.Create(CS_LAST_NAME, CS_FIRST_NAME, CS_MIDDLE_NAME, CS_AGE, FAddress);
+  FPerson  := TPerson.Create(CS_LAST_NAME, CS_FIRST_NAME, CS_MIDDLE_NAME, CS_AGE, FAddress, CS_POST);
+  FPerson.Status := CS_STATUS;
 
   FMapper := Mapper;
 end;
@@ -111,7 +114,8 @@ begin
                                                                                     FPersonDTO.FirstName,
                                                                                     FPersonDTO.MiddleName,
                                                                                     FPersonDTO.Age,
-                                                                                    mapper.Map<TAddress>(FPersonDTO.Address));
+                                                                                    mapper.Map<TAddress>(FPersonDTO.Address),
+                                                                                    FPersonDTO.Post);
                                                         end
                                                       )
                        .CreateMap<TPerson, TPersonDTO>(procedure (const s: TPerson; out d: TPersonDTO)
@@ -121,6 +125,7 @@ begin
                                                           d.MiddleName  := s.MiddleName;
                                                           d.Age         := s.Age;
                                                           d.Address     := mapper.Map<TAddressDTO>(s.Address);
+                                                          d.Post        := s.Post;
                                                         end
                                                        )
                        .CreateMap<TPerson, TSimplePersonDTO>();
@@ -138,6 +143,8 @@ begin
 
   CheckEquals(CS_LAST_NAME,   FSimplePersonDTO.Last_Name);
   CheckEquals(CS_FIRST_NAME,  FSimplePersonDTO.First_Name);
+  CheckEquals(CS_POST,        FSimplePersonDTO.Post);
+  CheckEquals(CS_STATUS,      FSimplePersonDTO.Status.Value);
   { TODO : Добавить возможность устанавливать кастомное приведение типов. }
   CheckEquals(CS_MIDDLE_NAME, FSimplePersonDTO.Middle_Name, 'Так как в объекте ресурса MiddleName: Nullable<string>, а в объекте назначения Middle_Mame: string - автоматическое приведение типов стандртными средствами не возможно.');
 end;

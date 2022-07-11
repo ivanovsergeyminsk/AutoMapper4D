@@ -16,6 +16,7 @@ type
     property NumHouse: integer read FNumHouse write SetNumHouse;
   end;
 
+  {$M+}
   TPersonDTO = class
   private
     FAge: Nullable<integer>;
@@ -23,17 +24,22 @@ type
     FMiddleName: Nullable<string>;
     FAddress: TAddressDTO;
     FFirstName: string;
+    FStatus: Nullable<integer>;
     procedure SetAddress(const Value: TAddressDTO);
     procedure SetAge(const Value: Nullable<integer>);
     procedure SetFirstName(const Value: string);
     procedure SetLastName(const Value: string);
     procedure SetMiddleName(const Value: Nullable<string>);
+    procedure SetStatus(const Value: Nullable<integer>);
   public
+    Post: string;
+  published
     property LastName: string read FLastName write SetLastName;
     property FirstName: string read FFirstName write SetFirstName;
     property MiddleName: Nullable<string> read FMiddleName write SetMiddleName;
     property Age: Nullable<integer> read FAge write SetAge;
     property Address: TAddressDTO read FAddress write SetAddress;
+    property Status: Nullable<integer> read FStatus write SetStatus;
   end;
 
   TUserDTO = class
@@ -52,13 +58,18 @@ type
     FMiddle_Name: string;
     FFirst_Name: string;
     FLast_Name: string;
+    FStatus: Nullable<integer>;
     procedure SetFirst_Name(const Value: string);
     procedure SetLast_Name(const Value: string);
     procedure SetMiddle_Name(const Value: string);
+    procedure SetStatus(const Value: Nullable<integer>);
   public
+    Post: string;
+  published
     property Last_Name: string read FLast_Name write SetLast_Name;
     property First_Name: string read FFirst_Name write SetFirst_Name;
     property Middle_Name: string read FMiddle_Name write SetMiddle_Name;
+    property Status: Nullable<integer> read FStatus write  SetStatus;
   end;
 
 implementation
@@ -102,6 +113,11 @@ begin
   FMiddleName := Value;
 end;
 
+procedure TPersonDTO.SetStatus(const Value: Nullable<integer>);
+begin
+  FStatus := Value;
+end;
+
 { TAddressDTO }
 
 procedure TAddressDTO.SetNumHouse(const Value: integer);
@@ -129,6 +145,11 @@ end;
 procedure TSimplePersonDTO.SetMiddle_Name(const Value: string);
 begin
   FMiddle_Name := Value;
+end;
+
+procedure TSimplePersonDTO.SetStatus(const Value: Nullable<integer>);
+begin
+  FStatus := Value;
 end;
 
 end.

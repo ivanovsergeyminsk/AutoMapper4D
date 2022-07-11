@@ -16,6 +16,7 @@ type
     constructor Create(const AStreet: string; const ANumHouse: integer);
   end;
 
+  {$M+}
   TPerson = class
   private
     FLastName: string;
@@ -23,13 +24,17 @@ type
     FMiddleName: Nullable<string>;
     FAge: Nullable<integer>;
     FAddress: TAddress;
+    FPost: string;
   public
+    Status: Nullable<integer>;
+  published
     property LastName: string read FLastName;
     property FirstName: string read FFirstName;
     property MiddleName: Nullable<string> read FMiddleName;
     property Age: Nullable<integer> read FAge;
     property Address: TAddress read FAddress;
-    constructor Create(ALastName, AFirstName: string; AMiddleName: Nullable<string>; AAge: Nullable<integer>; AAddress: TAddress); overload;
+    property Post: string read FPost;
+    constructor Create(ALastName, AFirstName: string; AMiddleName: Nullable<string>; AAge: Nullable<integer>; AAddress: TAddress; APost: string); overload;
   end;
 
 
@@ -39,13 +44,14 @@ implementation
 { TPerson }
 
 constructor TPerson.Create(ALastName, AFirstName: string;
-  AMiddleName: Nullable<string>; AAge: Nullable<integer>; AAddress: TAddress);
+  AMiddleName: Nullable<string>; AAge: Nullable<integer>; AAddress: TAddress; APost: string);
 begin
   FLastName   := ALastName;
   FFirstName  := AFirstName;
   FMiddleName := AMiddleName;
   FAge        := AAge;
   FAddress    := AAddress;
+  FPost       := APost;
 end;
 
 { TAddress }
