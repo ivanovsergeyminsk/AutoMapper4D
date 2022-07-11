@@ -5,21 +5,18 @@ uses
   AutoMapper.CfgMapper,
   Spring,
   AutoMapper.MappingExpression;
+
 type
   TConfigurationProvider = class
   protected
     FCfgMapper: TCfgMapper;
-    constructor Create(const CfgMapper: TCfgMapper); virtual;
   public
     function CreateMap<TSource: Class; TDestination: Class>(const MappingExpression: TMapExpression<TSource, TDestination>): TConfigurationProvider; overload;
     function CreateMap<TSource: Class; TDestination: Class>(): TConfigurationProvider; overload;
     procedure Validate;
-    destructor Destroy; override;
-  end;
 
-  TConfigurationProvderRunTime = class(TConfigurationProvider)
-  public
-    constructor Create(const CfgMapper: TCfgMapper); reintroduce;
+    constructor Create(const CfgMapper: TCfgMapper); virtual;
+    destructor Destroy; override;
   end;
 
 implementation
@@ -54,13 +51,6 @@ end;
 procedure TConfigurationProvider.Validate;
 begin
 
-end;
-
-{ TConfigurationProvderRunTime }
-
-constructor TConfigurationProvderRunTime.Create(const CfgMapper: TCfgMapper);
-begin
-  inherited Create(CfgMapper);
 end;
 
 end.

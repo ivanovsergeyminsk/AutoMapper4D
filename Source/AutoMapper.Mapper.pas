@@ -76,7 +76,7 @@ begin
   FInstance.ActionCfg := cfg;
 
   FInstance.CfgMapper := TCfgMapper.Create;
-  FInstance.Configuration := TConfigurationProvderRunTime.Create(FInstance.CfgMapper);
+  FInstance.Configuration := TConfigurationProvider.Create(FInstance.CfgMapper);
   FInstance.ActionCfg(FInstance.Configuration);
 
   FInstance.MapEngine := TMapEngine.Create(FInstance.CfgMapper);
