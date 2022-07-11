@@ -133,11 +133,11 @@ begin
   Ctx := TRttiContext.Create;
   FSourceRttiType := Ctx.GetType(source.ClassType);
   FDestRttiType   := Ctx.GetType(dest.ClassType);
-  FDestRttiField := default(TRttiField);
 
   for FDestRttiField in FDestRttiType.GetFields do
     for FSourceRttiField in FSourceRttiType.GetFields do
       begin
+        // DestField <- SourceField
         if (FDestRttiField.Visibility    in [mvPublic, mvPublished]) and
            (FSourceRttiField.Visibility  in [mvPublic, mvPublished]) and
            (FDestRttiField.Name.ToLower.Replace('_','') = FSourceRttiField.Name.ToLower.Replace('_', ''))
@@ -150,6 +150,7 @@ begin
               FDestRttiType.GetField(FDestRttiField.Name).SetValue(dest, FBufValue);
           end
          else
+          // DestFiled <- SourceProp
           for FSourceRttiProp in FSourceRttiType.GetProperties do
             if (FDestRttiField.Visibility    in [mvPublic, mvPublished]) and
                (FSourceRttiProp.Visibility   in [mvPublic, mvPublished]) and
@@ -164,34 +165,37 @@ begin
               end;
       end;
 
-    for FDestRttiProp in FDestRttiType.GetProperties do
-      for FSourceRttiProp in FSourceRttiType.GetProperties do
-        begin
-          if (FDestRttiProp.Visibility    in [mvPublic, mvPublished]) and
-             (FSourceRttiProp.Visibility  in [mvPublic, mvPublished]) and
-             (FDestRttiProp.Name.ToLower.Replace('_','') = FSourceRttiProp.Name.ToLower.Replace('_',''))
-          then
-            begin
-              FSourceValue  := FSourceRttiType.GetProperty(FSourceRttiProp.Name).GetValue(source);
-              FDestValue    := FDestRttiType.GetProperty(FDestRttiProp.Name).GetValue(dest);
+  for FDestRttiProp in FDestRttiType.GetProperties do
+    for FSourceRttiProp in FSourceRttiType.GetProperties do
+      begin
+        // DestProp <- SourceProp
+        if (FDestRttiProp.Visibility    in [mvPublic, mvPublished]) and
+           (FSourceRttiProp.Visibility  in [mvPublic, mvPublished]) and
+           (FDestRttiProp.Name.ToLower.Replace('_','') = FSourceRttiProp.Name.ToLower.Replace('_',''))
+        then
+          begin
+            FSourceValue  := FSourceRttiType.GetProperty(FSourceRttiProp.Name).GetValue(source);
+            FDestValue    := FDestRttiType.GetProperty(FDestRttiProp.Name).GetValue(dest);
 
-              if FSourceValue.TryCast(FDestValue.TypeInfo, FBufValue) then
-                FDestRttiType.GetProperty(FDestRttiProp.Name).SetValue(dest, FBufValue);
-            end
-          else
-            for FSourceRttiField in FSourceRttiType.GetFields do
-              if (FDestRttiField.Visibility    in [mvPublic, mvPublished]) and
-                 (FSourceRttiField.Visibility   in [mvPublic, mvPublished]) and
-                 (FDestRttiField.Name.ToLower.Replace('_','') = FSourceRttiField.Name.ToLower.Replace('_',''))
-              then
-                begin
-                  FSourceValue  := FSourceRttiType.GetField(FSourceRttiField.Name).GetValue(source);
-                  FDestValue    := FDestRttiType.GetProperty(FDestRttiField.Name).GetValue(dest);
+            if FSourceValue.TryCast(FDestValue.TypeInfo, FBufValue) then
+              FDestRttiType.GetProperty(FDestRttiProp.Name).SetValue(dest, FBufValue);
+          end
+        else
+          // DestProp <- SourceField
+          for FSourceRttiField in FSourceRttiType.GetFields do
+            if (FDestRttiProp.Visibility    in [mvPublic, mvPublished]) and
+               (FSourceRttiField.Visibility   in [mvPublic, mvPublished]) and
+               (FDestRttiProp.Name.ToLower.Replace('_','') = FSourceRttiField.Name.ToLower.Replace('_',''))
+            then
+              begin
+                FSourceValue  := FSourceRttiType.GetField(FSourceRttiField.Name).GetValue(source);
+                FDestValue    := FDestRttiType.GetProperty(FDestRttiProp.Name).GetValue(dest);
 
-                  if FSourceValue.TryCast(FDestValue.TypeInfo, FBufValue) then
-                    FDestRttiType.GetProperty(FDestRttiField.Name).SetValue(dest, FBufValue);
-                end;
-        end;
+                if FSourceValue.TryCast(FDestValue.TypeInfo, FBufValue) then
+                  FDestRttiType.GetProperty(FDestRttiProp.Name).SetValue(dest, FBufValue);
+              end;
+      end;
+
   Ctx.Free;
 end;
 
