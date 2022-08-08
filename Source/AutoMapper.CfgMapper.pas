@@ -3,18 +3,20 @@
 interface
 
 uses
-  AutoMapper.MapItem,
-  AutoMapper.ClassPair,
-  AutoMapper.MappingExpression,
-  Spring,
-  Spring.Collections
+    AutoMapper.MapItem
+  , AutoMapper.ClassPair
+  , AutoMapper.MappingExpression
+  , System.Generics.Collections
+  , System.Rtti
+//  , Spring
+//  , Spring.Collections
   ;
 
 type
 
   TCfgMapper = class
   private
-    FMapItems: IDictionary<TClassPair, TMapItem>;
+    FMapItems: TDictionary<TClassPair, TMapItem>;
 
     function ExpToValue<TSource: Class; TDestination: Class>(const AExp: TMapExpression<TSource, TDestination>): TValue; overload;
   public
@@ -30,14 +32,16 @@ type
 implementation
 
 uses
-  AutoMapper.Exceptions, System.SysUtils;
+    AutoMapper.Exceptions
+  , System.SysUtils
+  ;
 
 
 { TMapperList }
 
 constructor TCfgMapper.Create;
 begin
-  FMapItems   := TCollections.CreateDictionary<TClassPair, TMapItem>;
+  FMapItems   := TDictionary<TClassPair, TMapItem>.Create;
 end;
 
 procedure TCfgMapper.CreateMap<TSource, TDestination>(const MappingExpression: TMapExpression<TSource, TDestination>);
@@ -95,7 +99,7 @@ end;
 destructor TCfgMapper.Destroy;
 begin
   FMapItems.Clear;
-  FMapItems := nil;
+  FMapItems.Free;
 
   inherited;
 end;

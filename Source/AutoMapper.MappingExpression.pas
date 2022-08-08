@@ -2,9 +2,6 @@
 
 interface
 
-uses
-  Spring;
-
 type
   TMapExpression<TSource, TDestination> = reference to procedure (const source: TSource; out dest: TDestination);
 
@@ -30,7 +27,10 @@ type
 implementation
 
 uses
-  System.Rtti, System.TypInfo, System.SysUtils;
+    System.Rtti
+  , System.TypInfo
+  , System.SysUtils
+  ;
 
 { TMapExpCollections }
 

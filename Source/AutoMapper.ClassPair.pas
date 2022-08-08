@@ -1,6 +1,7 @@
 ﻿unit AutoMapper.ClassPair;
 
 interface
+
 type
   TClassPair = record
   class operator Equal(a: TClassPair; b: TClassPair) : Boolean;
@@ -31,7 +32,9 @@ type
 implementation
 
 uses
-  System.Rtti, AutoMapper.Exceptions;
+    AutoMapper.Exceptions
+  , System.Rtti
+  ;
 
 { TClassPair }
 

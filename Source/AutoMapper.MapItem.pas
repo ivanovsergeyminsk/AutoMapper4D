@@ -2,8 +2,9 @@
 
 interface
 uses
-  AutoMapper.ClassPair,
-  Spring;
+    AutoMapper.ClassPair
+  , System.Rtti
+  ;
 
 type
 

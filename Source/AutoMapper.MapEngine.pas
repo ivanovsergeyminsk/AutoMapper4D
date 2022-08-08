@@ -2,11 +2,10 @@
 
 interface
 uses
-  AutoMapper.CfgMapper,
-  AutoMapper.ClassPair,
-  AutoMapper.MapItem,
-  AutoMapper.MappingExpression,
-  Spring
+    AutoMapper.CfgMapper
+  , AutoMapper.ClassPair
+  , AutoMapper.MapItem
+  , AutoMapper.MappingExpression
   ;
 
 type
@@ -29,7 +28,8 @@ type
 implementation
 
 uses
-  System.Rtti;
+    System.Rtti
+  ;
 
 { TMapEngine }
 

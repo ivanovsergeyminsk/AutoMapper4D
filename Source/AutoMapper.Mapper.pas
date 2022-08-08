@@ -2,15 +2,16 @@
 
 interface
 uses
-  AutoMapper.ConfigurationProvider,
-  AutoMapper.MapEngine,
-  AutoMapper.Exceptions,
-  AutoMapper.CfgMapper,
-  Spring, AutoMapper.MappingExpression
+    AutoMapper.ConfigurationProvider
+  , AutoMapper.MapEngine
+  , AutoMapper.Exceptions
+  , AutoMapper.CfgMapper
+  , AutoMapper.MappingExpression
+  , System.SysUtils
   ;
 
 type
-  TActionConfigurationProvider = TAction<TConfigurationProvider>;
+  TActionConfigurationProvider = reference to procedure(const Arg1: TConfigurationProvider);
 
   TMapper = class
   strict private

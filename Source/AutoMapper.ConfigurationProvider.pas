@@ -2,9 +2,9 @@
 
 interface
 uses
-  AutoMapper.CfgMapper,
-  Spring,
-  AutoMapper.MappingExpression;
+    AutoMapper.CfgMapper
+  , AutoMapper.MappingExpression
+  ;
 
 type
   TConfigurationProvider = class

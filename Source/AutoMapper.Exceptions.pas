@@ -3,7 +3,8 @@
 interface
 
 uses
-  System.SysUtils;
+    System.SysUtils
+  ;
 
 type
   TAutoMapperException      = class(Exception);
