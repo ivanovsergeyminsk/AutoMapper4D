@@ -21,7 +21,9 @@ type
     destructor Destroy; override;
 
     function Map<TSource; TDestination>(const source: TSource): TDestination; overload;
-//    function Map<TDestination>(source: TObject): TDestination; overload;
+    function Map<TSource; TDestination>(const source: TSource; const MapExpression: TMapExpression<TSource, TDestination>): TDestination; overload;
+    function Map<TDestination>(const source: TObject): TDestination; overload;
+    function Map<TDestination>(const source: TObject; const MapExpression: TMapExpression<TObject, TDestination>): TDestination; overload;
   end;
 
 implementation
@@ -88,33 +90,62 @@ begin
   Result := Exp;
 end;
 
-//function TMapEngine.Map<TDestination>(source: TObject): TDestination;
-//var
-//  Ctx: TRttiContext;
-//  TypePair: TTypePair;
-//
-//  Destination: TDestination;
-//begin
-//  Ctx := TRttiContext.Create;
-//  if Ctx.GetType(TypeInfo(TDestination)).IsInstance then
-//    Destination := CreateInstance<TDestination>();
-//
-//  TypePair := TypePair.Create(Ctx.GetType(source).QualifiedName, Ctx.GetType(TypeInfo(TDestination)).QualifiedName);
+function TMapEngine.Map<TDestination>(const source: TObject): TDestination;
+var
+  Ctx: TRttiContext;
+  TypePair: TTypePair;
 
-//  if not FCfgMapper.TryGetMap(TypePair, Map) then
-//  begin
-//    if not (TMapperSetting.Automap in FCfgMapper.Settings) then
-//      raise TGetMapItemException.Create(Format(CS_GET_MAPITEM_NOT_FOUND, [TypePair.SourceType,
-//                                                                          TypePair.DestinationType]));
-//
-//    FCfgMapper.CreateMap<TSource, TDestination>();
-//    FCfgMapper.TryGetMap(TTypePair.New<TSource, TDestination>, Map);
-//  end;
-//
-//  Exp(source, Destination);
-//
-//  Result := Destination;
-//end;
+  Map: TMap;
+  Exp: TMapExpression<TObject, TDestination>;
+  Destination: TDestination;
+begin
+  Ctx := TRttiContext.Create;
+
+  TypePair := TypePair.Create(Ctx.GetType(source.ClassType).QualifiedName, Ctx.GetType(TypeInfo(TDestination)).QualifiedName);
+
+  if not FCfgMapper.TryGetMap(TypePair, Map) then
+    raise TGetMapItemException.Create(Format(CS_GET_MAPITEM_NOT_FOUND, [TypePair.SourceType,
+                                                                        TypePair.DestinationType]));
+  if Ctx.GetType(TypeInfo(TDestination)).IsInstance then
+    Destination := CreateInstance<TDestination>();
+
+  Map.Exp.ExtractRawData(@Exp);
+  Exp(source, Destination);
+
+  Result := Destination;
+end;
+
+function TMapEngine.Map<TDestination>(const source: TObject;
+  const MapExpression: TMapExpression<TObject, TDestination>): TDestination;
+var
+  Ctx: TRttiContext;
+
+  Destination: TDestination;
+begin
+  Ctx := TRttiContext.Create;
+  if Ctx.GetType(TypeInfo(TDestination)).IsInstance then
+    Destination := CreateInstance<TDestination>();
+
+  MapExpression(source, Destination);
+
+  Result := Destination;
+end;
+
+function TMapEngine.Map<TSource, TDestination>(const source: TSource;
+  const MapExpression: TMapExpression<TSource, TDestination>): TDestination;
+var
+  Ctx: TRttiContext;
+
+  Destination: TDestination;
+begin
+  Ctx := TRttiContext.Create;
+  if Ctx.GetType(TypeInfo(TDestination)).IsInstance then
+    Destination := CreateInstance<TDestination>();
+
+  MapExpression(source, Destination);
+
+  Result := Destination;
+end;
 
 function TMapEngine.Map<TSource, TDestination>(const source: TSource): TDestination;
 var

@@ -11,8 +11,6 @@ type
 
   TExpressionType = (None, ObjectToObject, ObjectToRecord, RecordToObject, RecordToRecord);
 
-  { TODO -oIvanovSN : Необходимо проверки на свойства - возможно ли чтение, возможна ли запись. }
-
   TMapExpCollections = class
   public
     class procedure MapExpObjectToObject<TSource, TDestination>(const source: TSource; out dest: TDestination); static;

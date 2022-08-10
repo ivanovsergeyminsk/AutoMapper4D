@@ -11,8 +11,13 @@ uses
   ;
 
 type
-
-  TMapperSetting = (Automap);
+  /// <summary>Mapper setting flag</summary>
+  TMapperSetting =
+    (
+      /// <summary>Perform mapping even if the source-destination pair is not configured</summary>
+      Automap
+    );
+  /// <summary>Mapper setting flags</summary>
   TMapperSettings = set of TMapperSetting;
 
   TCfgMapper = class
@@ -20,7 +25,7 @@ type
     FMaps: TDictionary<TTypePair, TMap>;
     FSettings: TMapperSettings;
 
-    function ExpressionToValue<TSource, TDestination>(const AExpression: TMapExpression<TSource, TDestination>): TValue;
+    function ExpressionToValue<TSource, TDestination>(const AExpression: TMapExpression<TSource, TDestination>): TValue; overload;
   public
     constructor Create;
     destructor Destroy; override;
@@ -29,8 +34,11 @@ type
 
     property Settings: TMapperSettings read FSettings write FSettings;
 
+    procedure CreateMap(SourceType, DestType: TRttiType); overload;
     procedure CreateMap<TSource; TDestination>; overload;
     procedure CreateMap<TSource; TDestination>(const MappingExpression: TMapExpression<TSource, TDestination>); overload;
+
+    function Count: integer;
   end;
 
 implementation
@@ -42,6 +50,11 @@ uses
 
 
 { TCfgMapper }
+
+function TCfgMapper.Count: integer;
+begin
+  result := FMaps.Count;
+end;
 
 constructor TCfgMapper.Create;
 begin
@@ -80,6 +93,11 @@ begin
   Map := TMap.Create(TypePair, ExpValue);
 
   FMaps.Add(TypePair, Map);
+end;
+
+procedure TCfgMapper.CreateMap(SourceType, DestType: TRttiType);
+begin
+
 end;
 
 procedure TCfgMapper.CreateMap<TSource, TDestination>(

@@ -7,14 +7,24 @@ uses
   ;
 
 type
-
+  /// <summary>Mapper Configuration Provider.</summary>
   TConfigurationProvider = class
   private
     FCfgMapper: TCfgMapper;
   public
+    /// <summary>Set Mapper settings.</summary>
+    /// <param name="Value">Setting Flags.</param>
     function Settings(const Value: TMapperSettings): TConfigurationProvider;
+    /// <summary>Create a map for the source-destination pair by specifying the expression.</summary>
+    /// <typeparam name="TSource">Source type to use, regardless of the runtime type.</typeparam>
+    /// <typeparam name="TDestination">Destination type to create.</typeparam>
+    /// <param name="MappingExpression">Expression for mapping.</param>
     function CreateMap<TSource; TDestination>(const MappingExpression: TMapExpression<TSource, TDestination>): TConfigurationProvider; overload;
+    /// <summary>Create a map for the source-destination pair using default expressions.</summary>
+    /// <typeparam name="TSource">Source type to use, regardless of the runtime type.</typeparam>
+    /// <typeparam name="TDestination">Destination type to create.</typeparam>
     function CreateMap<TSource; TDestination>(): TConfigurationProvider; overload;
+    /// <summary>Not implemented</summary>
     procedure Validate;
 
     constructor Create(const CfgMapper: TCfgMapper); virtual;
