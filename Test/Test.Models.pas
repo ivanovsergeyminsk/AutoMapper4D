@@ -16,6 +16,17 @@ type
     constructor Create(const AStreet: string; const ANumHouse: integer);
   end;
 
+  TAddressWriteble = class
+    private
+      FStreet: string;
+      FNumHouse: integer;
+    public
+    property Street: string read FStreet write FStreet;
+    property NumHouse: integer read FNumHouse write FNumHouse;
+
+    constructor Create(const AStreet: string; const ANumHouse: integer);
+  end;
+
   {$M+}
   TPerson = class
   private
@@ -58,7 +69,16 @@ end;
 
 constructor TAddress.Create(const AStreet: string; const ANumHouse: integer);
 begin
-  FStreet := AStreet;
+  FStreet   := AStreet;
+  FNumHouse := ANumHouse;
+end;
+
+{ TAddressWriteble }
+
+constructor TAddressWriteble.Create(const AStreet: string;
+  const ANumHouse: integer);
+begin
+  FStreet   := AStreet;
   FNumHouse := ANumHouse;
 end;
 

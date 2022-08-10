@@ -10,6 +10,11 @@ type
     NumHouse: integer;
   end;
 
+  TNewAddressRecord = record
+    Street: string;
+    Num_House: integer;
+  end;
+
   TAddressDTO = class
   private
     FStreet: string;

@@ -6,7 +6,7 @@
         <Projects Include="AutoMapper.dproj">
             <Dependencies/>
         </Projects>
-        <Projects Include="Test\AutoMapperTests.dproj">
+        <Projects Include="Test\AutoMapperTest.dproj">
             <Dependencies/>
         </Projects>
     </ItemGroup>
@@ -26,23 +26,23 @@
     <Target Name="AutoMapper:Make">
         <MSBuild Projects="AutoMapper.dproj" Targets="Make"/>
     </Target>
-    <Target Name="AutoMapperTests">
-        <MSBuild Projects="Test\AutoMapperTests.dproj"/>
+    <Target Name="AutoMapperTest">
+        <MSBuild Projects="Test\AutoMapperTest.dproj"/>
     </Target>
-    <Target Name="AutoMapperTests:Clean">
-        <MSBuild Projects="Test\AutoMapperTests.dproj" Targets="Clean"/>
+    <Target Name="AutoMapperTest:Clean">
+        <MSBuild Projects="Test\AutoMapperTest.dproj" Targets="Clean"/>
     </Target>
-    <Target Name="AutoMapperTests:Make">
-        <MSBuild Projects="Test\AutoMapperTests.dproj" Targets="Make"/>
+    <Target Name="AutoMapperTest:Make">
+        <MSBuild Projects="Test\AutoMapperTest.dproj" Targets="Make"/>
     </Target>
     <Target Name="Build">
-        <CallTarget Targets="AutoMapper;AutoMapperTests"/>
+        <CallTarget Targets="AutoMapper;AutoMapperTest"/>
     </Target>
     <Target Name="Clean">
-        <CallTarget Targets="AutoMapper:Clean;AutoMapperTests:Clean"/>
+        <CallTarget Targets="AutoMapper:Clean;AutoMapperTest:Clean"/>
     </Target>
     <Target Name="Make">
-        <CallTarget Targets="AutoMapper:Make;AutoMapperTests:Make"/>
+        <CallTarget Targets="AutoMapper:Make;AutoMapperTest:Make"/>
     </Target>
     <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
 </Project>
