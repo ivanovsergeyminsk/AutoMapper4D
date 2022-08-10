@@ -3,9 +3,10 @@
 interface
 uses
     AutoMapper.CfgMapper
-  , AutoMapper.ClassPair
+  , AutoMapper.TypePair
   , AutoMapper.MapItem
   , AutoMapper.MappingExpression
+  , AutoMapper.Exceptions
   ;
 
 type
@@ -13,22 +14,22 @@ type
   private
     FCfgMapper: TCfgMapper;
 
-    function CreateInstance<TDestination: Class>: TDestination;
-    function GetExpression<TSource, TDestination>(const AClassPair: TClassPair): TMapExpression<TSource, TDestination>;
+    function CreateInstance<TDestination>: TDestination;
+    function GetExpression<TSource, TDestination>: TMapExpression<TSource, TDestination>; overload;
   public
     constructor Create(const ACfgMapper: TCfgMapper);
     destructor Destroy; override;
 
-    function Map<TSource: Class; TDestination: Class>(const source: TSource): TDestination; overload;
-    function Map<TSource: Class; TDestination: Class>(const source: TSource; const MapExpression: TMapExpression<TSource, TDestination>): TDestination; overload;
-    function Map<TDestination: Class>(const source: TObject): TDestination; overload;
-    function Map<TDestination: Class>(const source: TObject; const MapExpression: TMapExpression<TObject, TDestination>): TDestination; overload;
+    function Map<TSource; TDestination>(const source: TSource): TDestination; overload;
+//    function Map<TDestination>(source: TObject): TDestination; overload;
   end;
 
 implementation
 
 uses
     System.Rtti
+  , System.TypInfo
+  , System.SysUtils
   ;
 
 { TMapEngine }
@@ -41,21 +42,15 @@ end;
 function TMapEngine.CreateInstance<TDestination>: TDestination;
 var
   Ctx: TRttiContext;
-  FRttiType: TRttiType;
-  FRttiInstance: TRttiInstanceType;
-  FDestValue: TValue;
-  FDestObj: TObject;
+  RttiType: TRttiType;
+  RttiInstance: TRttiInstanceType;
+  DestObj: TObject absolute result;
 begin
   Ctx := TRttiContext.Create;
-  FRttiType := Ctx.GetType(TypeInfo(TDestination));
-  FRttiInstance := FRttiType.AsInstance;
+  RttiType := Ctx.GetType(TypeInfo(TDestination));
+  RttiInstance := RttiType.AsInstance;
 
-  FDestObj := FRttiInstance.MetaclassType.Create;
-
-//  FDestValue := FRttiInstance.GetMethod('Create').Invoke(FRttiInstance.MetaclassType,[]);
-//  FDestObj := FDestValue.AsObject;
-
-  Result := FDestObj as TDestination;
+  DestObj := RttiInstance.MetaclassType.Create;
 
   Ctx.Free;
 end;
@@ -67,78 +62,76 @@ begin
   inherited;
 end;
 
-function TMapEngine.GetExpression<TSource, TDestination>(const AClassPair: TClassPair): TMapExpression<TSource, TDestination>;
+
+function TMapEngine.GetExpression<TSource, TDestination>: TMapExpression<TSource, TDestination>;
 var
-  FMapItem: TMapItem;
-  FExpValue: TValue;
-  FExp: TMapExpression<TSource, TDestination>;
+  Map: TMap;
+  ExpValue: TValue;
+  Exp: TMapExpression<TSource, TDestination>;
+
+  TypePair: TTypePair;
 begin
-  FMapItem    := FCfgMapper.GetMapItem(AClassPair);
-  FExpValue   := FMapItem.Exp;
+  TypePair := TTypePair.New<TSource, TDestination>;
 
-  FExpValue.ExtractRawData(@FExp);
+  if not FCfgMapper.TryGetMap(TypePair, Map) then
+  begin
+    if not (TMapperSetting.Automap in FCfgMapper.Settings) then
+      raise TGetMapItemException.Create(Format(CS_GET_MAPITEM_NOT_FOUND, [TypePair.SourceType,
+                                                                          TypePair.DestinationType]));
 
-  Result := FExp;
+    FCfgMapper.CreateMap<TSource, TDestination>();
+    FCfgMapper.TryGetMap(TTypePair.New<TSource, TDestination>, Map);
+  end;
+
+  Map.Exp.ExtractRawData(@Exp);
+
+  Result := Exp;
 end;
 
-function TMapEngine.Map<TDestination>(const source: TObject): TDestination;
-var
-  FClassPair: TClassPair;
-  FDestination: TDestination;
-  FExp: TMapExpression<TObject, TDestination>;
+//function TMapEngine.Map<TDestination>(source: TObject): TDestination;
+//var
+//  Ctx: TRttiContext;
+//  TypePair: TTypePair;
+//
+//  Destination: TDestination;
+//begin
+//  Ctx := TRttiContext.Create;
+//  if Ctx.GetType(TypeInfo(TDestination)).IsInstance then
+//    Destination := CreateInstance<TDestination>();
+//
+//  TypePair := TypePair.Create(Ctx.GetType(source).QualifiedName, Ctx.GetType(TypeInfo(TDestination)).QualifiedName);
 
-  FDestObj: TObject;
-begin
-  FClassPair := TClassPair.Create(source.ClassType, TDestination);
-  FExp := GetExpression<TObject, TDestination>(FClassPair);
-
-  FDestination := CreateInstance<TDestination>();
-
-  FExp(source, FDestination);
-
-  Result := FDestination;
-end;
+//  if not FCfgMapper.TryGetMap(TypePair, Map) then
+//  begin
+//    if not (TMapperSetting.Automap in FCfgMapper.Settings) then
+//      raise TGetMapItemException.Create(Format(CS_GET_MAPITEM_NOT_FOUND, [TypePair.SourceType,
+//                                                                          TypePair.DestinationType]));
+//
+//    FCfgMapper.CreateMap<TSource, TDestination>();
+//    FCfgMapper.TryGetMap(TTypePair.New<TSource, TDestination>, Map);
+//  end;
+//
+//  Exp(source, Destination);
+//
+//  Result := Destination;
+//end;
 
 function TMapEngine.Map<TSource, TDestination>(const source: TSource): TDestination;
 var
-  FClassPair: TClassPair;
-  FDestination: TDestination;
-  FExp: TMapExpression<TSource, TDestination>;
+  Ctx: TRttiContext;
+
+  Destination: TDestination;
+  Exp: TMapExpression<TSource, TDestination>;
 begin
-  FClassPair  := TClassPair.Create(TSource, TDestination);
-  FExp := GetExpression<TSource, TDestination>(FClassPair);
+  Exp := GetExpression<TSource, TDestination>();
 
-  FDestination := CreateInstance<TDestination>();
+  Ctx := TRttiContext.Create;
+  if Ctx.GetType(TypeInfo(TDestination)).IsInstance then
+    Destination := CreateInstance<TDestination>();
 
-  FExp(source,FDestination);
+  Exp(source, Destination);
 
-  Result := FDestination;
-end;
-
-function TMapEngine.Map<TDestination>(const source: TObject;
-  const MapExpression: TMapExpression<TObject, TDestination>): TDestination;
-var
-  FDestination: TDestination;
-
-  FDestObj: TObject;
-begin
-  FDestination := CreateInstance<TDestination>();
-
-  MapExpression(source, FDestination);
-
-  Result := FDestination;
-end;
-
-function TMapEngine.Map<TSource, TDestination>(const source: TSource;
-  const MapExpression: TMapExpression<TSource, TDestination>): TDestination;
-var
-  FDestination: TDestination;
-begin
-  FDestination := CreateInstance<TDestination>();
-
-  MapExpression(source,FDestination);
-
-  Result := FDestination;
+  Result := Destination;
 end;
 
 end.

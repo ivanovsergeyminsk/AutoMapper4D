@@ -7,12 +7,14 @@ uses
   ;
 
 type
+
   TConfigurationProvider = class
-  protected
+  private
     FCfgMapper: TCfgMapper;
   public
-    function CreateMap<TSource: Class; TDestination: Class>(const MappingExpression: TMapExpression<TSource, TDestination>): TConfigurationProvider; overload;
-    function CreateMap<TSource: Class; TDestination: Class>(): TConfigurationProvider; overload;
+    function Settings(const Value: TMapperSettings): TConfigurationProvider;
+    function CreateMap<TSource; TDestination>(const MappingExpression: TMapExpression<TSource, TDestination>): TConfigurationProvider; overload;
+    function CreateMap<TSource; TDestination>(): TConfigurationProvider; overload;
     procedure Validate;
 
     constructor Create(const CfgMapper: TCfgMapper); virtual;
@@ -46,6 +48,14 @@ begin
   FCfgMapper := nil;
 
   inherited;
+end;
+
+
+function TConfigurationProvider.Settings(
+  const Value: TMapperSettings): TConfigurationProvider;
+begin
+  FCfgMapper.Settings := Value;
+  result := self;
 end;
 
 procedure TConfigurationProvider.Validate;

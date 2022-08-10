@@ -2,38 +2,30 @@
 
 interface
 uses
-    AutoMapper.ClassPair
+    AutoMapper.TypePair
   , System.Rtti
   ;
 
 type
-
-  TMapItem = class(TObject)
+  TMap = class
   private
-    FClassPair: TClassPair;
+    FTypePair: TTypePair;
     FExp: TValue;
-    function GetClassPair: TClassPair;
   public
-    property ClassPair: TClassPair read GetClassPair;
+    property TypePair: TTypePair read FTypePair;
     property Exp: TValue read FExp;
 
-    constructor Create(const AClassPair:TClassPair; const AExp: TValue); overload;
+    constructor Create(const ATypePair: TTypePair; const AExp: TValue);
   end;
 
 implementation
 
-{ TMapItem }
+{ TMap }
 
-constructor TMapItem.Create(const AClassPair: TClassPair;
-  const AExp: TValue);
+constructor TMap.Create(const ATypePair: TTypePair; const AExp: TValue);
 begin
-  FClassPair := AClassPair;
-  FExp := AExp;
-end;
-
-function TMapItem.GetClassPair: TClassPair;
-begin
-  Result := FClassPair;
+  FTypePair := ATypePair;
+  FExp      := AExp;
 end;
 
 end.

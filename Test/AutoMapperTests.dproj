@@ -181,7 +181,7 @@
         <DCCReference Include="..\Source\AutoMapper.Mapper.pas"/>
         <DCCReference Include="..\Source\AutoMapper.CfgMapper.pas"/>
         <DCCReference Include="..\Source\AutoMapper.MapItem.pas"/>
-        <DCCReference Include="..\Source\AutoMapper.ClassPair.pas"/>
+        <DCCReference Include="..\Source\AutoMapper.TypePair.pas"/>
         <DCCReference Include="..\Source\AutoMapper.Exceptions.pas"/>
         <DCCReference Include="..\Source\AutoMapper.MapEngine.pas"/>
         <DCCReference Include="Test.Models.pas"/>
@@ -220,12 +220,12 @@
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="$(BDS)\Redist\iossimulator\libPCRE.dylib" Class="DependencyModule">
+                <DeployFile LocalName="$(BDS)\Redist\iossimulator\libpcre.dylib" Class="DependencyModule">
                     <Platform Name="iOSSimulator">
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="$(BDS)\Redist\iossimulator\libpcre.dylib" Class="DependencyModule">
+                <DeployFile LocalName="$(BDS)\Redist\iossimulator\libPCRE.dylib" Class="DependencyModule">
                     <Platform Name="iOSSimulator">
                         <Overwrite>true</Overwrite>
                     </Platform>

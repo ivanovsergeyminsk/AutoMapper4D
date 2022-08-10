@@ -30,16 +30,8 @@ type
     /// <typeparam name="TDestination">Destination type to create</typeparam>
     /// <param name="source">Source object to map from</param>
     /// <returns>Mapped destination object</returns>
-    function Map<TSource: Class; TDestination: Class>(const source: TSource): TDestination; overload;
-    function Map<TSource: Class; TDestination: Class>(const source: TSource; const MapExpression: TMapExpression<TSource, TDestination>): TDestination; overload;
-    /// <summary>
-    /// Execute a mapping from the source object to a new destination object.
-    /// The source type is inferred from the source object.
-    /// </summary>
-    /// <typeparam name="TDestination">Destination type to create</typeparam>
-    /// <param name="source">Source object to map from</param>
-    /// <returns>Mapped destination object</returns>
-    function Map<TDestination: Class>(const source: TObject): TDestination; overload;
+    function Map<TSource; TDestination>(const source: TSource): TDestination; overload;
+//    function Map<TSource; TDestination>(const source: TSource; const MapExpression: TMapExpression<TSource, TDestination>): TDestination; overload;
 
     class function GetInstance: TMapper;
     class procedure Configure(const cfg: TActionConfigurationProvider);
@@ -51,21 +43,16 @@ type
 
 implementation
 
-function TMapper.Map<TDestination>(const source: TObject): TDestination;
-begin
-  Result := MapEngine.Map<TDestination>(source);
-end;
-
 function TMapper.Map<TSource, TDestination>(const source: TSource): TDestination;
 begin
   Result :=  MapEngine.Map<TSource, TDestination>(source);
 end;
 
-function TMapper.Map<TSource, TDestination>(const source: TSource;
-  const MapExpression: TMapExpression<TSource, TDestination>): TDestination;
-begin
-  Result :=  MapEngine.Map<TSource, TDestination>(source, MapExpression);
-end;
+//function TMapper.Map<TSource, TDestination>(const source: TSource;
+//  const MapExpression: TMapExpression<TSource, TDestination>): TDestination;
+//begin
+//  Result :=  MapEngine.Map<TSource, TDestination>(source, MapExpression);
+//end;
 
 class procedure TMapper.Configure(const cfg: TActionConfigurationProvider);
 begin

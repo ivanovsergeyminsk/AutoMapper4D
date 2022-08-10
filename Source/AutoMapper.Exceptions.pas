@@ -11,8 +11,9 @@ type
   TMapperConfigureException = class(TAutoMapperException);
   TGetMapItemException      = class(TAutoMapperException);
   TClassPairCreateExcetion  = class(TAutoMapperException);
+  TTypePairCreateException  = class(TAutoMapperException);
 
-const
+resourcestring
   CS_MAPPER_CONFIGURATION_ALLREADY = 'The AutoMapper configuration has already been performed.';
 
   CS_GET_MAPITEM_NOT_FOUND         = 'MapItem for a pair of objects "%s"->"%s" not found.';

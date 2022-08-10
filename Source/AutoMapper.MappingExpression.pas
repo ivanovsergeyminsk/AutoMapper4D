@@ -2,199 +2,520 @@
 
 interface
 
+uses
+    System.Rtti
+  ;
+
 type
   TMapExpression<TSource, TDestination> = reference to procedure (const source: TSource; out dest: TDestination);
 
-  TMapExpCollections = class
-  strict private
-    class var FMapExpProperties: TMapExpression<TObject, TObject>;
-    class var FMapExpFields:     TMapExpression<TObject, TObject>;
-    class var FMapExpPropsFields: TMapExpression<TObject, TObject>;
+  TExpressionType = (None, ObjectToObject, ObjectToRecord, RecordToObject, RecordToRecord);
 
-    class procedure _MapExpProperties(const source: TObject; out dest: TObject); static;
-    class procedure _MapExpFields(const source: TObject; out dest: TObject); static;
-    class procedure _MapExpPropsFields(const source: TObject; out dest: TObject); static;
-  private
-    class function GetMapExpProperties:   TMapExpression<TObject, TObject>; static;
-    class function GetMapExpFields:       TMapExpression<TObject, TObject>; static;
-    class function GetMapExpPropsFields:  TMapExpression<TObject, TObject>; static;
+  { TODO -oIvanovSN : Необходимо проверки на свойства - возможно ли чтение, возможна ли запись. }
+
+  TMapExpCollections = class
   public
-    class property MapExpProperties:  TMapExpression<TObject, TObject> read GetMapExpProperties;
-    class property MapExpFields:      TMapExpression<TObject, TObject> read GetMapExpFields;
-    class property MapExpPropsFields: TMapExpression<TObject, TObject> read GetMapExpPropsFields;
+    class procedure MapExpObjectToObject<TSource, TDestination>(const source: TSource; out dest: TDestination); static;
+    class procedure MapExpObjectToRecord<TSource, TDestination>(const source: TSource; out dest: TDestination); static;
+    class procedure MapExpRecordToObject<TSource, TDestination>(const source: TSource; out dest: TDestination); static;
+    class procedure MapExpRecordToRecord<TSource, TDestination>(const source: TSource; out dest: TDestination); static;
+
+    class function GetExpressionType<TSource, TDestination>: TExpressionType; static;
   end;
 
 implementation
 
 uses
-    System.Rtti
-  , System.TypInfo
+    System.TypInfo
   , System.SysUtils
   ;
 
 { TMapExpCollections }
 
-class function TMapExpCollections.GetMapExpFields: TMapExpression<TObject, TObject>;
-begin
-  if not Assigned(FMapExpFields) then
-    FMapExpFields := _MapExpFields;
-
-  result := FMapExpFields;
-end;
-
-class function TMapExpCollections.GetMapExpProperties: TMapExpression<TObject, TObject>;
-begin
-  if not Assigned(FMapExpProperties) then
-    FMapExpProperties := _MapExpProperties;
-
-  Result := FMapExpProperties;
-end;
-
-class function TMapExpCollections.GetMapExpPropsFields: TMapExpression<TObject, TObject>;
-begin
-  if not Assigned(FMapExpPropsFields) then
-    FMapExpPropsFields := _MapExpPropsFields;
-
-  Result := FMapExpPropsFields;
-end;
-
-class procedure TMapExpCollections._MapExpFields(const source: TObject; out dest: TObject);
+class function TMapExpCollections.GetExpressionType<TSource, TDestination>: TExpressionType;
 var
   Ctx: TRttiContext;
-  FDestRttiType, FSourceRttiType: TRttiType;
-
-  FDestRttiField, FSourceRttiField: TRttiField;
-  FBufValue, FSourceValue, FDestValue: TValue;
+  SourceType, DestType: TRttiType;
 begin
   Ctx := TRttiContext.Create;
-  FSourceRttiType := Ctx.GetType(source.ClassType);
-  FDestRttiType   := Ctx.GetType(dest.ClassType);
+  SourceType := Ctx.GetType(TypeInfo(TSource));
+  DestType   := Ctx.GetType(TypeInfo(TDestination));
 
-  for FDestRttiField in FDestRttiType.GetFields do
-    for FSourceRttiField in FSourceRttiType.GetFields do
+  if SourceType.IsInstance and DestType.IsInstance then
+    Exit(TExpressionType.ObjectToObject);
+
+  if SourceType.IsInstance and DestType.IsRecord then
+    Exit(TExpressionType.ObjectToRecord);
+
+  if SourceType.IsRecord and DestType.IsInstance then
+    Exit(TExpressionType.RecordToObject);
+
+  if SourceType.IsRecord and DestType.IsRecord then
+    Exit(TExpressionType.RecordToRecord);
+
+  result := TExpressionType.None;
+end;
+
+class procedure TMapExpCollections.MapExpObjectToObject<TSource, TDestination>(
+  const source: TSource; out dest: TDestination);
+var
+  LSource : TObject absolute source;
+  LDest   : TObject absolute dest;
+
+  Ctx: TRttiContext;
+  DestRttiType, SourceRttiType, PropType: TRttiType;
+
+  DestRttiField, SourceRttiField: TRttiField;
+  DestRttiProp, SourceRttiProp: TRttiProperty;
+  BufValue, SourceValue, DestValue: TValue;
+
+  isFound: boolean;
+begin
+  Ctx := TRttiContext.Create;
+  SourceRttiType := Ctx.GetType(TypeInfo(TSource));
+  DestRttiType   := Ctx.GetType(TypeInfo(TDestination));
+
+  for DestRttiField in DestRttiType.GetFields do
+  begin
+    // DestField <- SourceField
+    isFound := false;
+    for SourceRttiField in SourceRttiType.GetFields do
+    begin
+      if (DestRttiField.Visibility    in [mvPublic, mvPublished]) and
+         (SourceRttiField.Visibility  in [mvPublic, mvPublished]) and
+         (DestRttiField.Name.ToLower.Replace('_','') = SourceRttiField.Name.ToLower.Replace('_', ''))
+      then
       begin
-        if (FDestRttiField.Visibility    in [mvPublic, mvPublished]) and
-           (FSourceRttiField.Visibility  in [mvPublic, mvPublished]) and
-           (FDestRttiField.Name.ToLower = FSourceRttiField.Name.ToLower)
-        then
-          begin
-            FSourceValue  := FSourceRttiType.GetField(FSourceRttiField.Name).GetValue(source);
-            FDestValue    := FDestRttiType.GetField(FDestRttiField.Name).GetValue(dest);
+        SourceValue  := SourceRttiType.GetField(SourceRttiField.Name).GetValue(LSource);
+        DestValue    := DestRttiType.GetField(DestRttiField.Name).GetValue(LDest);
 
-            if FSourceValue.TryCast(FDestValue.TypeInfo, FBufValue) then
-              FDestRttiType.GetField(FDestRttiField.Name).SetValue(dest, FBufValue);
-          end;
+        if SourceValue.TryCast(DestValue.TypeInfo, BufValue) then
+        begin
+          DestRttiType.GetField(DestRttiField.Name).SetValue(LDest, BufValue);
+          isFound := true;
+          break;
+        end;
+      end
+    end;
+
+    if isFound then
+      continue;
+
+    // DestFiled <- SourceProp
+    for SourceRttiProp in SourceRttiType.GetProperties do
+    begin
+      if (DestRttiField.Visibility    in [mvPublic, mvPublished]) and
+         (SourceRttiProp.Visibility   in [mvPublic, mvPublished]) and
+         (SourceRttiProp.IsReadable) and
+         (DestRttiField.Name.ToLower.Replace('_','') = SourceRttiProp.Name.ToLower.Replace('_',''))
+      then
+      begin
+        SourceValue  := SourceRttiType.GetProperty(SourceRttiProp.Name).GetValue(LSource);
+        DestValue    := DestRttiType.GetField(DestRttiField.Name).GetValue(LDest);
+
+        if SourceValue.TryCast(DestValue.TypeInfo, BufValue) then
+        begin
+          DestRttiType.GetField(DestRttiField.Name).SetValue(LDest, BufValue);
+          break;
+        end;
       end;
+    end;
+  end;
+
+  for DestRttiProp in DestRttiType.GetProperties do
+  begin
+    isFound := false;
+   // DestProp <- SourceProp
+    for SourceRttiProp in SourceRttiType.GetProperties do
+    begin
+      if (DestRttiProp.Visibility    in [mvPublic, mvPublished]) and
+         (SourceRttiProp.Visibility  in [mvPublic, mvPublished]) and
+         (DestRttiProp.IsWritable) and (SourceRttiProp.IsReadable) and
+         (DestRttiProp.Name.ToLower.Replace('_','') = SourceRttiProp.Name.ToLower.Replace('_',''))
+      then
+        begin
+          SourceValue  := SourceRttiType.GetProperty(SourceRttiProp.Name).GetValue(LSource);
+          DestValue    := DestRttiType.GetProperty(DestRttiProp.Name).GetValue(LDest);
+
+          if SourceValue.TryCast(DestValue.TypeInfo, BufValue) then
+          begin
+            DestRttiType.GetProperty(DestRttiProp.Name).SetValue(LDest, BufValue);
+            isFound := true;
+            break;
+          end;
+        end
+    end;
+
+    if isFound then
+      Continue;
+
+    // DestProp <- SourceField
+    for SourceRttiField in SourceRttiType.GetFields do
+    begin
+      if (DestRttiProp.Visibility    in [mvPublic, mvPublished]) and
+         (SourceRttiField.Visibility in [mvPublic, mvPublished]) and
+         (DestRttiProp.IsWritable) and
+         (DestRttiProp.Name.ToLower.Replace('_','') = SourceRttiField.Name.ToLower.Replace('_',''))
+      then
+      begin
+        SourceValue  := SourceRttiType.GetField(SourceRttiField.Name).GetValue(LSource);
+        DestValue    := DestRttiType.GetProperty(DestRttiProp.Name).GetValue(LDest);
+
+        if SourceValue.TryCast(DestValue.TypeInfo, BufValue) then
+        begin
+          DestRttiType.GetProperty(DestRttiProp.Name).SetValue(LDest, BufValue);
+          break;
+        end;
+      end;
+    end;
+  end;
 
   Ctx.Free;
 end;
 
-class procedure TMapExpCollections._MapExpProperties(const source: TObject; out dest: TObject);
+class procedure TMapExpCollections.MapExpObjectToRecord<TSource, TDestination>(
+  const source: TSource; out dest: TDestination);
 var
-  Ctx: TRttiContext;
-  FDestRttiType, FSourceRttiType: TRttiType;
+  LSource: TObject absolute source;
 
-  FDestRttiProp, FSourceRttiProp: TRttiProperty;
-  FBufValue, FSourceValue, FDestValue: TValue;
+  Ctx: TRttiContext;
+  DestRttiType, SourceRttiType, PropType: TRttiType;
+
+  DestRttiField, SourceRttiField: TRttiField;
+  DestRttiProp, SourceRttiProp: TRttiProperty;
+  BufValue, SourceValue, DestValue: TValue;
+
+  isFound: boolean;
 begin
   Ctx := TRttiContext.Create;
-  FSourceRttiType := Ctx.GetType(source.ClassType);
-  FDestRttiType   := Ctx.GetType(dest.ClassType);
+  SourceRttiType := Ctx.GetType(TypeInfo(TSource));
+  DestRttiType   := Ctx.GetType(TypeInfo(TDestination));
 
-  for FDestRttiProp in FDestRttiType.GetProperties do
-    for FSourceRttiProp in FSourceRttiType.GetProperties do
+  for DestRttiField in DestRttiType.GetFields do
+  begin
+    // DestField <- SourceField
+    isFound := false;
+    for SourceRttiField in SourceRttiType.GetFields do
+    begin
+      if (DestRttiField.Visibility    in [mvPublic, mvPublished]) and
+         (SourceRttiField.Visibility  in [mvPublic, mvPublished]) and
+         (DestRttiField.Name.ToLower.Replace('_','') = SourceRttiField.Name.ToLower.Replace('_', ''))
+      then
       begin
-        if (FDestRttiProp.Visibility    in [mvPublic, mvPublished]) and
-           (FSourceRttiProp.Visibility  in [mvPublic, mvPublished]) and
-           (FDestRttiProp.Name.ToLower = FSourceRttiProp.Name.ToLower)
-        then
-          begin
-            FSourceValue  := FSourceRttiType.GetProperty(FSourceRttiProp.Name).GetValue(source);
-            FDestValue    := FDestRttiType.GetProperty(FDestRttiProp.Name).GetValue(dest);
+        SourceValue  := SourceRttiType.GetField(SourceRttiField.Name).GetValue(LSource);
+        DestValue    := DestRttiType.GetField(DestRttiField.Name).GetValue(@dest);
 
-            if FSourceValue.TryCast(FDestValue.TypeInfo, FBufValue) then
-              FDestRttiType.GetProperty(FDestRttiProp.Name).SetValue(dest, FBufValue);
-          end;
+        if SourceValue.TryCast(DestValue.TypeInfo, BufValue) then
+        begin
+          DestRttiType.GetField(DestRttiField.Name).SetValue(@dest, BufValue);
+          isFound := true;
+          break;
+        end;
+      end
+    end;
+
+    if isFound then
+      continue;
+
+    // DestFiled <- SourceProp
+    for SourceRttiProp in SourceRttiType.GetProperties do
+    begin
+      if (DestRttiField.Visibility    in [mvPublic, mvPublished]) and
+         (SourceRttiProp.Visibility   in [mvPublic, mvPublished]) and
+         (SourceRttiProp.IsReadable) and
+         (DestRttiField.Name.ToLower.Replace('_','') = SourceRttiProp.Name.ToLower.Replace('_',''))
+      then
+      begin
+        SourceValue  := SourceRttiType.GetProperty(SourceRttiProp.Name).GetValue(LSource);
+        DestValue    := DestRttiType.GetField(DestRttiField.Name).GetValue(@dest);
+
+        if SourceValue.TryCast(DestValue.TypeInfo, BufValue) then
+        begin
+          DestRttiType.GetField(DestRttiField.Name).SetValue(@dest, BufValue);
+          break;
+        end;
       end;
+    end;
+  end;
+
+  for DestRttiProp in DestRttiType.GetProperties do
+  begin
+    isFound := false;
+   // DestProp <- SourceProp
+    for SourceRttiProp in SourceRttiType.GetProperties do
+    begin
+      if (DestRttiProp.Visibility    in [mvPublic, mvPublished]) and
+         (SourceRttiProp.Visibility  in [mvPublic, mvPublished]) and
+         (DestRttiProp.IsWritable) and (SourceRttiProp.IsReadable) and
+         (DestRttiProp.Name.ToLower.Replace('_','') = SourceRttiProp.Name.ToLower.Replace('_',''))
+      then
+        begin
+          SourceValue  := SourceRttiType.GetProperty(SourceRttiProp.Name).GetValue(LSource);
+          DestValue    := DestRttiType.GetProperty(DestRttiProp.Name).GetValue(@dest);
+
+          if SourceValue.TryCast(DestValue.TypeInfo, BufValue) then
+          begin
+            DestRttiType.GetProperty(DestRttiProp.Name).SetValue(@dest, BufValue);
+            isFound := true;
+            break;
+          end;
+        end
+    end;
+
+    if isFound then
+      Continue;
+
+    // DestProp <- SourceField
+    for SourceRttiField in SourceRttiType.GetFields do
+    begin
+      if (DestRttiProp.Visibility    in [mvPublic, mvPublished]) and
+         (SourceRttiField.Visibility in [mvPublic, mvPublished]) and
+         (DestRttiProp.IsWritable) and
+         (DestRttiProp.Name.ToLower.Replace('_','') = SourceRttiField.Name.ToLower.Replace('_',''))
+      then
+      begin
+        SourceValue  := SourceRttiType.GetField(SourceRttiField.Name).GetValue(LSource);
+        DestValue    := DestRttiType.GetProperty(DestRttiProp.Name).GetValue(@dest);
+
+        if SourceValue.TryCast(DestValue.TypeInfo, BufValue) then
+        begin
+          DestRttiType.GetProperty(DestRttiProp.Name).SetValue(@dest, BufValue);
+          break;
+        end;
+      end;
+    end;
+  end;
 
   Ctx.Free;
 end;
 
-class procedure TMapExpCollections._MapExpPropsFields(const source: TObject; out dest: TObject);
+class procedure TMapExpCollections.MapExpRecordToObject<TSource, TDestination>(
+  const source: TSource; out dest: TDestination);
 var
+  LDest: TObject absolute dest;
+
   Ctx: TRttiContext;
-  FDestRttiType, FSourceRttiType, FPropType: TRttiType;
+  DestRttiType, SourceRttiType, PropType: TRttiType;
 
-  FDestRttiField, FSourceRttiField: TRttiField;
-  FDestRttiProp, FSourceRttiProp: TRttiProperty;
+  DestRttiField, SourceRttiField: TRttiField;
+  DestRttiProp, SourceRttiProp: TRttiProperty;
+  BufValue, SourceValue, DestValue: TValue;
 
-  FBufValue, FSourceValue, FDestValue: TValue;
+  isFound: boolean;
 begin
   Ctx := TRttiContext.Create;
-  FSourceRttiType := Ctx.GetType(source.ClassType);
-  FDestRttiType   := Ctx.GetType(dest.ClassType);
+  SourceRttiType := Ctx.GetType(TypeInfo(TSource));
+  DestRttiType   := Ctx.GetType(TypeInfo(TDestination));
 
-  for FDestRttiField in FDestRttiType.GetFields do
-    for FSourceRttiField in FSourceRttiType.GetFields do
+  for DestRttiField in DestRttiType.GetFields do
+  begin
+    // DestField <- SourceField
+    isFound := false;
+    for SourceRttiField in SourceRttiType.GetFields do
+    begin
+      if (DestRttiField.Visibility    in [mvPublic, mvPublished]) and
+         (SourceRttiField.Visibility  in [mvPublic, mvPublished]) and
+         (DestRttiField.Name.ToLower.Replace('_','') = SourceRttiField.Name.ToLower.Replace('_', ''))
+      then
       begin
-        // DestField <- SourceField
-        if (FDestRttiField.Visibility    in [mvPublic, mvPublished]) and
-           (FSourceRttiField.Visibility  in [mvPublic, mvPublished]) and
-           (FDestRttiField.Name.ToLower.Replace('_','') = FSourceRttiField.Name.ToLower.Replace('_', ''))
-        then
-          begin
-            FSourceValue  := FSourceRttiType.GetField(FSourceRttiField.Name).GetValue(source);
-            FDestValue    := FDestRttiType.GetField(FDestRttiField.Name).GetValue(dest);
+        SourceValue  := SourceRttiType.GetField(SourceRttiField.Name).GetValue(@source);
+        DestValue    := DestRttiType.GetField(DestRttiField.Name).GetValue(LDest);
 
-            if FSourceValue.TryCast(FDestValue.TypeInfo, FBufValue) then
-              FDestRttiType.GetField(FDestRttiField.Name).SetValue(dest, FBufValue);
-          end
-         else
-          // DestFiled <- SourceProp
-          for FSourceRttiProp in FSourceRttiType.GetProperties do
-            if (FDestRttiField.Visibility    in [mvPublic, mvPublished]) and
-               (FSourceRttiProp.Visibility   in [mvPublic, mvPublished]) and
-               (FDestRttiField.Name.ToLower.Replace('_','') = FSourceRttiProp.Name.ToLower.Replace('_',''))
-            then
-              begin
-                FSourceValue  := FSourceRttiType.GetProperty(FSourceRttiProp.Name).GetValue(source);
-                FDestValue    := FDestRttiType.GetField(FDestRttiField.Name).GetValue(dest);
+        if SourceValue.TryCast(DestValue.TypeInfo, BufValue) then
+        begin
+          DestRttiType.GetField(DestRttiField.Name).SetValue(LDest, BufValue);
+          isFound := true;
+          break;
+        end;
+      end
+    end;
 
-                if FSourceValue.TryCast(FDestValue.TypeInfo, FBufValue) then
-                  FDestRttiType.GetField(FDestRttiField.Name).SetValue(dest, FBufValue);
-              end;
-      end;
+    if isFound then
+      continue;
 
-  for FDestRttiProp in FDestRttiType.GetProperties do
-    for FSourceRttiProp in FSourceRttiType.GetProperties do
+    // DestFiled <- SourceProp
+    for SourceRttiProp in SourceRttiType.GetProperties do
+    begin
+      if (DestRttiField.Visibility    in [mvPublic, mvPublished]) and
+         (SourceRttiProp.Visibility   in [mvPublic, mvPublished]) and
+         (SourceRttiProp.IsReadable) and
+         (DestRttiField.Name.ToLower.Replace('_','') = SourceRttiProp.Name.ToLower.Replace('_',''))
+      then
       begin
-        // DestProp <- SourceProp
-        if (FDestRttiProp.Visibility    in [mvPublic, mvPublished]) and
-           (FSourceRttiProp.Visibility  in [mvPublic, mvPublished]) and
-           (FDestRttiProp.Name.ToLower.Replace('_','') = FSourceRttiProp.Name.ToLower.Replace('_',''))
-        then
-          begin
-            FSourceValue  := FSourceRttiType.GetProperty(FSourceRttiProp.Name).GetValue(source);
-            FDestValue    := FDestRttiType.GetProperty(FDestRttiProp.Name).GetValue(dest);
+        SourceValue  := SourceRttiType.GetProperty(SourceRttiProp.Name).GetValue(@source);
+        DestValue    := DestRttiType.GetField(DestRttiField.Name).GetValue(LDest);
 
-            if FSourceValue.TryCast(FDestValue.TypeInfo, FBufValue) then
-              FDestRttiType.GetProperty(FDestRttiProp.Name).SetValue(dest, FBufValue);
-          end
-        else
-          // DestProp <- SourceField
-          for FSourceRttiField in FSourceRttiType.GetFields do
-            if (FDestRttiProp.Visibility    in [mvPublic, mvPublished]) and
-               (FSourceRttiField.Visibility   in [mvPublic, mvPublished]) and
-               (FDestRttiProp.Name.ToLower.Replace('_','') = FSourceRttiField.Name.ToLower.Replace('_',''))
-            then
-              begin
-                FSourceValue  := FSourceRttiType.GetField(FSourceRttiField.Name).GetValue(source);
-                FDestValue    := FDestRttiType.GetProperty(FDestRttiProp.Name).GetValue(dest);
-
-                if FSourceValue.TryCast(FDestValue.TypeInfo, FBufValue) then
-                  FDestRttiType.GetProperty(FDestRttiProp.Name).SetValue(dest, FBufValue);
-              end;
+        if SourceValue.TryCast(DestValue.TypeInfo, BufValue) then
+        begin
+          DestRttiType.GetField(DestRttiField.Name).SetValue(LDest, BufValue);
+          break;
+        end;
       end;
+    end;
+  end;
+
+  for DestRttiProp in DestRttiType.GetProperties do
+  begin
+    isFound := false;
+   // DestProp <- SourceProp
+    for SourceRttiProp in SourceRttiType.GetProperties do
+    begin
+      if (DestRttiProp.Visibility    in [mvPublic, mvPublished]) and
+         (SourceRttiProp.Visibility  in [mvPublic, mvPublished]) and
+         (DestRttiProp.IsWritable) and (SourceRttiProp.IsReadable) and
+         (DestRttiProp.Name.ToLower.Replace('_','') = SourceRttiProp.Name.ToLower.Replace('_',''))
+      then
+        begin
+          SourceValue  := SourceRttiType.GetProperty(SourceRttiProp.Name).GetValue(@source);
+          DestValue    := DestRttiType.GetProperty(DestRttiProp.Name).GetValue(LDest);
+
+          if SourceValue.TryCast(DestValue.TypeInfo, BufValue) then
+          begin
+            DestRttiType.GetProperty(DestRttiProp.Name).SetValue(LDest, BufValue);
+            isFound := true;
+            break;
+          end;
+        end
+    end;
+
+    if isFound then
+      Continue;
+
+    // DestProp <- SourceField
+    for SourceRttiField in SourceRttiType.GetFields do
+    begin
+      if (DestRttiProp.Visibility    in [mvPublic, mvPublished]) and
+         (SourceRttiField.Visibility in [mvPublic, mvPublished]) and
+         (DestRttiProp.IsWritable) and
+         (DestRttiProp.Name.ToLower.Replace('_','') = SourceRttiField.Name.ToLower.Replace('_',''))
+      then
+      begin
+        SourceValue  := SourceRttiType.GetField(SourceRttiField.Name).GetValue(@source);
+        DestValue    := DestRttiType.GetProperty(DestRttiProp.Name).GetValue(LDest);
+
+        if SourceValue.TryCast(DestValue.TypeInfo, BufValue) then
+        begin
+          DestRttiType.GetProperty(DestRttiProp.Name).SetValue(LDest, BufValue);
+          break;
+        end;
+      end;
+    end;
+  end;
+
+  Ctx.Free;
+end;
+
+
+class procedure TMapExpCollections.MapExpRecordToRecord<TSource, TDestination>(
+  const source: TSource; out dest: TDestination);
+var
+  Ctx: TRttiContext;
+  DestRttiType, SourceRttiType, PropType: TRttiType;
+
+  DestRttiField, SourceRttiField: TRttiField;
+  DestRttiProp, SourceRttiProp: TRttiProperty;
+  BufValue, SourceValue, DestValue: TValue;
+
+  isFound: boolean;
+begin
+  Ctx := TRttiContext.Create;
+  SourceRttiType := Ctx.GetType(TypeInfo(TSource));
+  DestRttiType   := Ctx.GetType(TypeInfo(TDestination));
+
+  for DestRttiField in DestRttiType.GetFields do
+  begin
+    // DestField <- SourceField
+    isFound := false;
+    for SourceRttiField in SourceRttiType.GetFields do
+    begin
+      if (DestRttiField.Visibility    in [mvPublic, mvPublished]) and
+         (SourceRttiField.Visibility  in [mvPublic, mvPublished]) and
+         (DestRttiField.Name.ToLower.Replace('_','') = SourceRttiField.Name.ToLower.Replace('_', ''))
+      then
+      begin
+        SourceValue  := SourceRttiType.GetField(SourceRttiField.Name).GetValue(@source);
+        DestValue    := DestRttiType.GetField(DestRttiField.Name).GetValue(@dest);
+
+        if SourceValue.TryCast(DestValue.TypeInfo, BufValue) then
+        begin
+          DestRttiType.GetField(DestRttiField.Name).SetValue(@dest, BufValue);
+          isFound := true;
+          break;
+        end;
+      end
+    end;
+
+    if isFound then
+      continue;
+
+    // DestFiled <- SourceProp
+    for SourceRttiProp in SourceRttiType.GetProperties do
+    begin
+      if (DestRttiField.Visibility    in [mvPublic, mvPublished]) and
+         (SourceRttiProp.Visibility   in [mvPublic, mvPublished]) and
+         (SourceRttiProp.IsReadable) and
+         (DestRttiField.Name.ToLower.Replace('_','') = SourceRttiProp.Name.ToLower.Replace('_',''))
+      then
+      begin
+        SourceValue  := SourceRttiType.GetProperty(SourceRttiProp.Name).GetValue(@source);
+        DestValue    := DestRttiType.GetField(DestRttiField.Name).GetValue(@dest);
+
+        if SourceValue.TryCast(DestValue.TypeInfo, BufValue) then
+        begin
+          DestRttiType.GetField(DestRttiField.Name).SetValue(@dest, BufValue);
+          break;
+        end;
+      end;
+    end;
+  end;
+
+  for DestRttiProp in DestRttiType.GetProperties do
+  begin
+    isFound := false;
+   // DestProp <- SourceProp
+    for SourceRttiProp in SourceRttiType.GetProperties do
+    begin
+      if (DestRttiProp.Visibility    in [mvPublic, mvPublished]) and
+         (SourceRttiProp.Visibility  in [mvPublic, mvPublished]) and
+         (DestRttiProp.IsWritable) and (SourceRttiProp.IsReadable) and
+         (DestRttiProp.Name.ToLower.Replace('_','') = SourceRttiProp.Name.ToLower.Replace('_',''))
+      then
+        begin
+          SourceValue  := SourceRttiType.GetProperty(SourceRttiProp.Name).GetValue(@source);
+          DestValue    := DestRttiType.GetProperty(DestRttiProp.Name).GetValue(@dest);
+
+          if SourceValue.TryCast(DestValue.TypeInfo, BufValue) then
+          begin
+            DestRttiType.GetProperty(DestRttiProp.Name).SetValue(@dest, BufValue);
+            isFound := true;
+            break;
+          end;
+        end
+    end;
+
+    if isFound then
+      Continue;
+
+    // DestProp <- SourceField
+    for SourceRttiField in SourceRttiType.GetFields do
+    begin
+      if (DestRttiProp.Visibility    in [mvPublic, mvPublished]) and
+         (SourceRttiField.Visibility in [mvPublic, mvPublished]) and
+         (DestRttiProp.IsWritable) and
+         (DestRttiProp.Name.ToLower.Replace('_','') = SourceRttiField.Name.ToLower.Replace('_',''))
+      then
+      begin
+        SourceValue  := SourceRttiType.GetField(SourceRttiField.Name).GetValue(@source);
+        DestValue    := DestRttiType.GetProperty(DestRttiProp.Name).GetValue(@dest);
+
+        if SourceValue.TryCast(DestValue.TypeInfo, BufValue) then
+        begin
+          DestRttiType.GetProperty(DestRttiProp.Name).SetValue(@dest, BufValue);
+          break;
+        end;
+      end;
+    end;
+  end;
 
   Ctx.Free;
 end;

@@ -21,7 +21,7 @@ uses
   AutoMapper.Mapper in '..\Source\AutoMapper.Mapper.pas',
   AutoMapper.CfgMapper in '..\Source\AutoMapper.CfgMapper.pas',
   AutoMapper.MapItem in '..\Source\AutoMapper.MapItem.pas',
-  AutoMapper.ClassPair in '..\Source\AutoMapper.ClassPair.pas',
+  AutoMapper.TypePair in '..\Source\AutoMapper.TypePair.pas',
   AutoMapper.Exceptions in '..\Source\AutoMapper.Exceptions.pas',
   AutoMapper.MapEngine in '..\Source\AutoMapper.MapEngine.pas',
   Test.Models in 'Test.Models.pas',

@@ -5,6 +5,11 @@ uses
   Spring;
 
 type
+  TAddressRecord = record
+    Street: string;
+    NumHouse: integer;
+  end;
+
   TAddressDTO = class
   private
     FStreet: string;
